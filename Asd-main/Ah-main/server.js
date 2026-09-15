@@ -3718,7 +3718,7 @@ function applyMobDamage(mob, target, damage, isWeb = false) {
     sourceId: mob.id, sourceName: mob.typeName || 'Düşman', isWeb: Boolean(isWeb),
   };
   if (isBot) {
-    io.emit('players', { [target.id]: compactState(target) });
+    broadcastPlayerStateNear(target);
     if (target.hp <= 0) {
       onPlayerDeath(target.id);
       io.emit('player_dead', { id: target.id });
@@ -3754,11 +3754,35 @@ function applyPlayerDamage(target, damage) {
   return target;
 }
 
+function broadcastPlayerStateNear(target) {
+  if (!target) return;
+  const nearby = nearbyPlayers(target.x, target.y, PLAYER_AOI_RADIUS);
+  for (const observer of nearby) {
+    if (!observer || observer.isBot) continue;
+    const socket = io.sockets.sockets.get(observer.id);
+    if (socket?.connected) socket.volatile.emit('players', { [target.id]: compactStateCompressed(target) });
+  }
+}
+
+function broadcastPlayerEventNear(player, event, payload) {
+  if (!player) return;
+  const nearby = nearbyPlayers(player.x, player.y, PLAYER_AOI_RADIUS);
+  for (const observer of nearby) {
+    if (!observer || observer.isBot) continue;
+    const socket = io.sockets.sockets.get(observer.id);
+    if (socket?.connected) socket.emit(event, payload);
+  }
+}
+
+function broadcastBotEvent(bot, event, payload) {
+  broadcastPlayerEventNear(bot, event, payload);
+}
+
 function publishPlayerDamage(target, damage, sourceName = 'Düşman') {
   if (!target) return;
   const socket = io.sockets.sockets.get(target.id);
   if (target.isBot) {
-    io.emit('players', { [target.id]: compactState(target) });
+    broadcastPlayerStateNear(target);
     return;
   }
   if (!socket || !socket.connected) return;
@@ -3795,7 +3819,7 @@ function applySpikeDamageToTarget(target, spike, now = Date.now(), fromPush = fa
   const ownerName = owner?.name || 'Diken';
   io.to(target.id).emit('pvp_hit', { dmg: damage, fromName: ownerName });
   io.to(target.id).emit('self_state', { hp: target.hp, hpSeq: target.hpSeq, hpAt: target.hpAt });
-  io.emit('players', { [target.id]: compactState(target) });
+  broadcastPlayerStateNear(target);
 
   if (owner && !owner.isBot) {
     const s = io.sockets.sockets.get(owner.id);
@@ -4907,13 +4931,13 @@ setInterval(() => {
           const oldSpikeId = bot.defSpikes.shift();
           if (buildings.has(oldSpikeId)) {
             buildings.delete(oldSpikeId);
-            io.emit('build_destroy', { id: oldSpikeId });
+            broadcastBotEvent(bot, 'build_destroy', { id: oldSpikeId });
           }
         }
         bot.defSpikes.push(bId);
         rebuildBuildingGrid();
-        io.emit('player_attack', { id: bot.id, weapon: 3, angle: bot.angle, at: now, durationMs: 240 });
-        io.emit('build', { id: bId, building: { ...defSpike } });
+        broadcastBotEvent(bot, 'player_attack', { id: bot.id, weapon: 3, angle: bot.angle, at: now, durationMs: 240 });
+        broadcastBotEvent(bot, 'build', { id: bId, building: { ...defSpike } });
       }
     }
 
@@ -5060,7 +5084,7 @@ setInterval(() => {
             const oldId = bot.baseBuildingIds.shift();
             if (buildings.has(oldId)) {
               buildings.delete(oldId);
-              io.emit('build_destroy', { id: oldId });
+              broadcastBotEvent(bot, 'build_destroy', { id: oldId });
             }
           }
 
@@ -5081,8 +5105,8 @@ setInterval(() => {
           buildings.set(bId, newBld);
           bot.baseBuildingIds.push(bId);
           rebuildBuildingGrid();
-          io.emit('player_attack', { id: bot.id, weapon: placeType, angle: bot.angle, at: now, durationMs: 240 });
-          io.emit('build', { id: bId, building: { ...newBld } });
+          broadcastBotEvent(bot, 'player_attack', { id: bot.id, weapon: placeType, angle: bot.angle, at: now, durationMs: 240 });
+          broadcastBotEvent(bot, 'build', { id: bId, building: { ...newBld } });
         }
       }
     }
@@ -6021,7 +6045,7 @@ io.on('connection', (socket) => {
     attacker.isAttacking = true;
     attacker.attackTimer = 0;
     attacker.attackDuration = isBuildingWeapon ? 240 : (weapon === 2 ? 280 : 300);
-    io.emit('player_attack', {
+    const attackPacket = {
       id: socket.id,
       weapon,
       angle,
@@ -6029,8 +6053,9 @@ io.on('connection', (socket) => {
       swingId: swingId ?? now,
       serverTime: now,
       durationMs: isBuildingWeapon ? 240 : (weapon === 2 ? 280 : 300)
-    });
-    io.emit('playerAttack', socket.id);
+    };
+    broadcastPlayerEventNear(attacker, 'player_attack', attackPacket);
+    broadcastPlayerEventNear(attacker, 'playerAttack', socket.id);
     if (isBuildingWeapon) return;
     const attackerX = Number(attacker.x) || 0, attackerY = Number(attacker.y) || 0;
     if (!pvpAllowed()) return;
@@ -6538,14 +6563,14 @@ io.on('connection', (socket) => {
     else buildingGrid.set(cellKey, [building]);
     socket.emit('self_state', { g: owner.gold, wood: owner.wood, stone: owner.stone, apples: owner.apples });
     socket.emit('build_ack', { clientId: data.id, serverId: id });
-    io.emit('player_attack', {
+    broadcastPlayerEventNear(owner, 'player_attack', {
       id: socket.id,
       weapon: bType,
       angle: owner.angle,
       at: now,
       durationMs: 240
     });
-    io.emit('build', { id, building: { ...building } });
+    broadcastPlayerEventNear(owner, 'build', { id, building: { ...building } });
   });
   socket.on('build', (data = {}) => {
     // Legacy client event intentionally ignored; place_building is authoritative.
