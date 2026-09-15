@@ -3779,6 +3779,10 @@ function broadcastPlayerEventNear(player, event, payload) {
   }
 }
 
+function broadcastTrapStateNear(target, payload) {
+  broadcastPlayerEventNear(target, 'trap_state', payload);
+}
+
 function broadcastBotEvent(bot, event, payload) {
   broadcastPlayerEventNear(bot, event, payload);
 }
@@ -4101,7 +4105,7 @@ function applyTrapVictimState(target, trapId, trapX = target?.x, trapY = target?
   target.y = target.trappedY;
   target.vx = 0;
   target.vy = 0;
-  io.emit('trap_state', {
+  broadcastTrapStateNear(target, {
     id: target.id, trappedBy: trapId, trappedX: target.trappedX, trappedY: target.trappedY,
     x: target.x, y: target.y, at: Date.now()
   });
@@ -4120,7 +4124,7 @@ function releaseTrapVictim(playerId, trapId = null) {
   target.trappedY = null;
   target.vx = 0;
   target.vy = 0;
-  io.emit('trap_state', {
+  broadcastTrapStateNear(target, {
     id: target.id, trappedBy: null, trappedX: null, trappedY: null,
     x: target.x, y: target.y, at: Date.now()
   });
@@ -4141,7 +4145,7 @@ function capturePlayerInTrap(target) {
     if (dx * dx + dy * dy > triggerRadius * triggerRadius) continue;
     if (!applyTrapVictimState(target, building.id, target.x, target.y)) continue;
     io.to(target.id).emit('trap_caught', { buildingId: building.id, x: target.x, y: target.y });
-    io.emit('trap_triggered', { buildingId: building.id, victimId: target.id, x: target.x, y: target.y });
+    broadcastPlayerEventNear(target, 'trap_triggered', { buildingId: building.id, victimId: target.id, x: target.x, y: target.y });
     return true;
   }
   return false;
@@ -4156,7 +4160,7 @@ function capturePlayerInSpecificTrap(target, building) {
   if (dx * dx + dy * dy > triggerRadius * triggerRadius) return false;
   if (!applyTrapVictimState(target, building.id, target.x, target.y)) return false;
   io.to(target.id).emit('trap_caught', { buildingId: building.id, x: target.x, y: target.y });
-  io.emit('trap_triggered', { buildingId: building.id, victimId: target.id, x: target.x, y: target.y });
+  broadcastPlayerEventNear(target, 'trap_triggered', { buildingId: building.id, victimId: target.id, x: target.x, y: target.y });
   return true;
 }
 
@@ -4243,12 +4247,13 @@ function pushTrappedVictim(owner, target, dx, dy, requestedStep = 1) {
     }
   }
 
-  io.emit('trap_state', {
+  broadcastTrapStateNear(target, {
     id: target.id, trappedBy: target.trappedBy, trappedX: target.trappedX, trappedY: target.trappedY,
     x: target.x, y: target.y, at: now
   });
   io.to(target.id).emit('trap_victim_push', { dx: pushX, dy: pushY, x: target.x, y: target.y });
-  io.emit('players', { [target.id]: compactState(target), [owner.id]: compactState(owner) });
+  broadcastPlayerStateNear(target);
+  broadcastPlayerStateNear(owner);
   return true;
 }
 
@@ -4266,7 +4271,7 @@ function dedupeTrapState(target, trapId) {
     target.y = Number(trap.y) + (trapDy / (Math.hypot(trapDx, trapDy) || 1)) * leashRadius;
     target.trappedX = target.x;
     target.trappedY = target.y;
-    io.emit('trap_state', {
+    broadcastTrapStateNear(target, {
       id: target.id, trappedBy: trapId, trappedX: target.trappedX, trappedY: target.trappedY,
       x: target.x, y: target.y, at: Date.now()
     });
@@ -4297,7 +4302,7 @@ function enforceCanonicalTrapLock(target) {
     target.trappedY = clampedY;
     target.vx = 0;
     target.vy = 0;
-    io.emit('trap_state', {
+    broadcastTrapStateNear(target, {
       id: target.id,
       trappedBy: target.trappedBy,
       trappedX: target.trappedX,
@@ -5202,7 +5207,7 @@ setInterval(() => {
               bot.trappedX = bot.x;
               bot.trappedY = bot.y;
               bot.vx = 0; bot.vy = 0;
-              io.emit('trap_triggered', { buildingId: b.id, victimId: bot.id, bId: b.id, x: bot.x, y: bot.y });
+              broadcastPlayerEventNear(bot, 'trap_triggered', { buildingId: b.id, victimId: bot.id, bId: b.id, x: bot.x, y: bot.y });
               break;
             }
           }
