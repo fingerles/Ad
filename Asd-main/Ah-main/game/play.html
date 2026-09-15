@@ -3475,6 +3475,21 @@ html.touch-device .joy-zone { display:flex !important; pointer-events:auto !impo
 .death-run-icon {
   font-size: 14px;
 }
+.death-gold-icon {
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 0 6px rgba(236, 201, 75, 0.7));
+}
+.death-gold-icon img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  display: block;
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.6));
+}
 .death-run-card strong {
   font-family: 'Lilita One', cursive, sans-serif;
   font-size: clamp(15px, 3.5vw, 19px);
@@ -4549,7 +4564,7 @@ function drawSkinEyesOverlay(c, R, sk, fl) {
       <div id="death-run-grid" aria-label="Maç özeti">
         <div class="death-run-card"><span class="death-run-icon">⚔️</span><strong id="ds-kills">0</strong><small>Leş</small></div>
         <div class="death-run-card"><span class="death-run-icon">⏱️</span><strong id="ds-time">00:00</strong><small>Süre</small></div>
-        <div class="death-run-card"><span class="death-run-icon">🪙</span><strong id="ds-gold">+0</strong><small>Altın</small></div>
+        <div class="death-run-card"><span class="death-run-icon death-gold-icon"><img src="asset/gold.png" alt="Altın" onerror="this.outerHTML='🪙'" /></span><strong id="ds-gold">+0</strong><small>Altın</small></div>
         <div class="death-run-card"><span class="death-run-icon">💥</span><strong id="ds-dmg">0</strong><small>Hasar</small></div>
       </div>
 
