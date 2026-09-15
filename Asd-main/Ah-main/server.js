@@ -43,6 +43,11 @@ const BUILD_COSTS = { 3: [20, 5, 0], 4: [40, 20, 0], 5: [10, 20, 0], 6: [30, 10,
 const BUILD_RADII = { 3: 34, 4: 44, 5: 22, 6: 78, 7: 32, 8: 24, 9: 52, 10: 30 };
 const BUILD_MAX_HP = { 3: 180, 4: 120, 5: 100, 6: 240, 7: 200, 8: 350, 9: 800, 10: 100 };
 const BUILD_ACTION_COOLDOWN = 700;
+const TRAP_CAPTURE_DEPTH = 4;
+
+function trapCaptureRadius(trap, targetRadius = 35) {
+  return Math.max(1, (Number(trap?.radius) || 78) + (Number(targetRadius) || 35) - TRAP_CAPTURE_DEPTH);
+}
 let buildingGrid = new Map();
 function rebuildBuildingGrid() {
   const nextGrid = new Map();
@@ -3055,7 +3060,7 @@ function validateTrapCapture(attacker, target, building) {
   if ((building.ownerId && building.ownerId !== attacker.id) && attacker.id !== target.id) return false;
   const dx = (Number(target.x) || 0) - (Number(building.x) || 0);
   const dy = (Number(target.y) || 0) - (Number(building.y) || 0);
-  const radius = (Number(building.radius) || 78) + 34;
+  const radius = trapCaptureRadius(building, target.radius || 34);
   return dx * dx + dy * dy <= radius * radius;
 }
 
@@ -4132,7 +4137,7 @@ function capturePlayerInTrap(target) {
     if (building.type !== 6 || (building.hp ?? 0) <= 0 || building.ownerId === target.id) continue;
     const dx = (Number(target.x) || 0) - (Number(building.x) || 0);
     const dy = (Number(target.y) || 0) - (Number(building.y) || 0);
-    const triggerRadius = (Number(building.radius) || 78) + 34;
+    const triggerRadius = trapCaptureRadius(building, target.radius || 34);
     if (dx * dx + dy * dy > triggerRadius * triggerRadius) continue;
     if (!applyTrapVictimState(target, building.id, target.x, target.y)) continue;
     io.to(target.id).emit('trap_caught', { buildingId: building.id, x: target.x, y: target.y });
@@ -4147,7 +4152,7 @@ function capturePlayerInSpecificTrap(target, building) {
   if (building.type !== 6 || (building.hp ?? 0) <= 0 || building.ownerId === target.id) return false;
   const dx = (Number(target.x) || 0) - (Number(building.x) || 0);
   const dy = (Number(target.y) || 0) - (Number(building.y) || 0);
-  const triggerRadius = (Number(building.radius) || 78) + (Number(target.radius) || 34);
+  const triggerRadius = trapCaptureRadius(building, target.radius || 34);
   if (dx * dx + dy * dy > triggerRadius * triggerRadius) return false;
   if (!applyTrapVictimState(target, building.id, target.x, target.y)) return false;
   io.to(target.id).emit('trap_caught', { buildingId: building.id, x: target.x, y: target.y });
@@ -5190,7 +5195,7 @@ setInterval(() => {
           // Enemy Trap capture check
           if (b.type === 6 && b.ownerId !== bot.id && (!bot.clanId || b.ownerClanId !== bot.clanId)) {
             const tdx = bot.x - b.x, tdy = bot.y - b.y;
-            const trapTriggerR = (b.radius || 52) + 20;
+            const trapTriggerR = trapCaptureRadius(b, bot.radius || 35);
             if (tdx * tdx + tdy * tdy <= trapTriggerR * trapTriggerR) {
               bot.trappedBy = b.id;
               bot.trappedUntil = now + 3500; // max 3.5 seconds trap hold
@@ -6257,7 +6262,7 @@ io.on('connection', (socket) => {
     const owner = b ? players.get(b.ownerId) : null;
     if (!b || b.type !== 6 || (b.hp ?? 0) <= 0 || !owner || owner.hp <= 0 || owner.id !== socket.id) return;
     const dx = mob.x - b.x, dy = mob.y - b.y;
-    const triggerRadius = (Number(b.radius) || 78) + (Number(mob.radius) || 36);
+    const triggerRadius = trapCaptureRadius(b, mob.radius || 36);
     if (dx * dx + dy * dy > triggerRadius * triggerRadius) return;
     if (b && (b.hp ?? 100) > 0) {
       mob.trappedBy = b.id;

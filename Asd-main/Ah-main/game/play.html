@@ -19151,7 +19151,7 @@ function update(timestamp = 0) {
       if (isOwn) continue;
       if (b.ownerClanId && player.clanId && b.ownerClanId === player.clanId) continue;
       const tdx = player.x - b.x, tdy = player.y - b.y;
-      const trapTriggerR = (b.radius || 52) + player.radius * 0.75;
+      const trapTriggerR = Math.max(1, (b.radius || 52) + (player.radius || 35) - 4);
       if (tdx * tdx + tdy * tdy <= trapTriggerR * trapTriggerR) {
         const trapId = b._netId || b.id || b._bLid;
         if (_connected && _socket && b._netId && (_trapPendingId !== trapId || Date.now() >= _trapPendingUntil)) {
