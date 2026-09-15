@@ -10023,6 +10023,7 @@
             if (_authToken) loadInviteEventFromServer();
             pingServer();
             loadHomeLeaderboard();
+            setInterval(loadHomeLeaderboard, 5000);
             setInterval(pingServer, 15000);
             startLivePreview();
             renderInviteEventLeftWidget();
