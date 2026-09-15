@@ -8228,9 +8228,26 @@
                 'friendInviteModal', 'creatorEventModal', 'leadersModal', 'challengesModal',
                 'dailyRewardModal', 'partyModal', 'helpModal'
             ]);
+            const naturalFlowKeys = new Set([
+                'headerMain', 'headerRightPanel', 'profileHud', 'leftEventsContainer',
+                'inviteEvent', 'creatorEvent', 'mainMenu', 'nameInput', 'activePetBtn',
+                'playBtn', 'actionButtons'
+            ]);
 
             Object.entries(targets).forEach(([key, element]) => {
                 if (!element || !safeConfig[key]) return;
+                if (naturalFlowKeys.has(key)) {
+                    element.style.position = '';
+                    element.style.left = '';
+                    element.style.top = '';
+                    element.style.width = '';
+                    element.style.height = '';
+                    element.style.maxWidth = '';
+                    element.style.maxHeight = '';
+                    element.style.margin = '';
+                    element.style.transform = '';
+                    return;
+                }
                 const item = safeConfig[key];
                 const left = ((item.xPercent / 100) * viewportW) - ((item.widthPercent / 100) * viewportW) / 2;
                 const top = ((item.yPercent / 100) * viewportH) - ((item.heightPercent / 100) * viewportH) / 2;
