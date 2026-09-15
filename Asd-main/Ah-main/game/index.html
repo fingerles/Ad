@@ -8476,6 +8476,12 @@
                 livePreview.socket = socket;
                 socket.on('connect', () => { socket.emit('spectate'); });
                 socket.on('cosmetic_catalog_updated', () => { loadServerCosmetics(); });
+                socket.on('owner_config_updated', data => {
+                    if (!data?.mainMenuLayout) return;
+                    window.__forestbrawlMainMenuLayout = data.mainMenuLayout;
+                    localStorage.setItem('fb_main_menu_layout', JSON.stringify(data.mainMenuLayout));
+                    applyMainMenuLayout(data.mainMenuLayout);
+                });
                 socket.on('welcome', data => {
                     livePreview.active = true;
                     livePreview.players.clear(); livePreview.mobs.clear();
