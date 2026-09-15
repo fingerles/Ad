@@ -8111,17 +8111,34 @@
 
         function sanitizeLayoutConfig(layout) {
             const defaults = {
-                leftEventsContainer: { xPercent: 7, yPercent: 25, widthPercent: 24, heightPercent: 38 },
-                headerRightPanel: { xPercent: 85, yPercent: 18, widthPercent: 22, heightPercent: 30 },
-                mainMenu: { xPercent: 50, yPercent: 50, widthPercent: 42, heightPercent: 76 },
-                nameInput: { xPercent: 50, yPercent: 33, widthPercent: 72, heightPercent: 8 },
-                activePetBtn: { xPercent: 50, yPercent: 45, widthPercent: 72, heightPercent: 17 },
-                playBtn: { xPercent: 50, yPercent: 60, widthPercent: 80, heightPercent: 14 },
-                actionButtons: { xPercent: 50, yPercent: 74, widthPercent: 72, heightPercent: 12 }
+                portrait: {
+                    leftEventsContainer: { xPercent: 10, yPercent: 20, widthPercent: 84, heightPercent: 16 },
+                    headerRightPanel: { xPercent: 82, yPercent: 10, widthPercent: 18, heightPercent: 22 },
+                    mainMenu: { xPercent: 50, yPercent: 58, widthPercent: 86, heightPercent: 50 },
+                    nameInput: { xPercent: 50, yPercent: 34, widthPercent: 78, heightPercent: 9 },
+                    activePetBtn: { xPercent: 50, yPercent: 48, widthPercent: 78, heightPercent: 16 },
+                    playBtn: { xPercent: 50, yPercent: 65, widthPercent: 88, heightPercent: 15 },
+                    actionButtons: { xPercent: 50, yPercent: 77, widthPercent: 82, heightPercent: 12 }
+                },
+                landscape: {
+                    leftEventsContainer: { xPercent: 7, yPercent: 25, widthPercent: 24, heightPercent: 38 },
+                    headerRightPanel: { xPercent: 85, yPercent: 18, widthPercent: 22, heightPercent: 30 },
+                    mainMenu: { xPercent: 50, yPercent: 50, widthPercent: 42, heightPercent: 76 },
+                    nameInput: { xPercent: 50, yPercent: 33, widthPercent: 72, heightPercent: 8 },
+                    activePetBtn: { xPercent: 50, yPercent: 45, widthPercent: 72, heightPercent: 17 },
+                    playBtn: { xPercent: 50, yPercent: 60, widthPercent: 80, heightPercent: 14 },
+                    actionButtons: { xPercent: 50, yPercent: 74, widthPercent: 72, heightPercent: 12 }
+                }
             };
+
+            const mode = window.matchMedia && window.matchMedia('(orientation: portrait)').matches ? 'portrait' : 'landscape';
+            const source = (layout && typeof layout === 'object' && !Array.isArray(layout))
+                ? ((layout.portrait || layout.landscape) ? (layout[mode] || layout.landscape || layout.portrait || defaults[mode]) : layout)
+                : defaults[mode];
+
             const output = {};
-            Object.entries(defaults).forEach(([key, fallback]) => {
-                const value = layout && layout[key] ? layout[key] : fallback;
+            Object.entries(defaults[mode]).forEach(([key, fallback]) => {
+                const value = source && source[key] ? source[key] : fallback;
                 output[key] = {
                     xPercent: clampLayoutValue(Number(value.xPercent ?? value.x ?? fallback.xPercent), 0, 100),
                     yPercent: clampLayoutValue(Number(value.yPercent ?? value.y ?? fallback.yPercent), 0, 100),
@@ -8138,7 +8155,11 @@
         }
 
         function applyMainMenuLayout(config) {
-            const safeConfig = sanitizeLayoutConfig(config || {});
+            const mode = window.matchMedia && window.matchMedia('(orientation: portrait)').matches ? 'portrait' : 'landscape';
+            const selectedConfig = (config && typeof config === 'object' && !Array.isArray(config) && (config.portrait || config.landscape))
+                ? (config[mode] || config.landscape || config.portrait || {})
+                : config || {};
+            const safeConfig = sanitizeLayoutConfig(selectedConfig);
             const viewport = window.visualViewport;
             const viewportW = viewport?.width || window.innerWidth || document.documentElement.clientWidth || 1;
             const viewportH = viewport?.height || window.innerHeight || document.documentElement.clientHeight || 1;

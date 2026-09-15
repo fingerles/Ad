@@ -373,10 +373,28 @@
     originY: 0,
     startRect: null,
     viewport: null,
-    items: new Map()
+    items: new Map(),
+    orientation: 'landscape',
+    layoutCache: { portrait: {}, landscape: {} }
   };
 
-  function getLayoutEditorDefaults() {
+  function getCurrentLayoutMode() {
+    return window.matchMedia && window.matchMedia('(orientation: portrait)').matches ? 'portrait' : 'landscape';
+  }
+
+  function getLayoutEditorDefaults(mode = 'landscape') {
+    if (mode === 'portrait') {
+      return {
+        leftEventsContainer: { xPercent: 10, yPercent: 20, widthPercent: 82, heightPercent: 18 },
+        headerRightPanel: { xPercent: 82, yPercent: 8, widthPercent: 18, heightPercent: 22 },
+        mainMenu: { xPercent: 50, yPercent: 58, widthPercent: 86, heightPercent: 50 },
+        nameInput: { xPercent: 50, yPercent: 34, widthPercent: 78, heightPercent: 9 },
+        activePetBtn: { xPercent: 50, yPercent: 48, widthPercent: 78, heightPercent: 16 },
+        playBtn: { xPercent: 50, yPercent: 65, widthPercent: 88, heightPercent: 15 },
+        actionButtons: { xPercent: 50, yPercent: 77, widthPercent: 82, heightPercent: 12 }
+      };
+    }
+
     return {
       leftEventsContainer: { xPercent: 8, yPercent: 22, widthPercent: 26, heightPercent: 35 },
       headerRightPanel: { xPercent: 80, yPercent: 18, widthPercent: 22, heightPercent: 30 },
@@ -386,6 +404,14 @@
       playBtn: { xPercent: 50, yPercent: 60, widthPercent: 78, heightPercent: 16 },
       actionButtons: { xPercent: 50, yPercent: 74, widthPercent: 68, heightPercent: 14 }
     };
+  }
+
+  function resolveLayoutForMode(layout, mode = null) {
+    const selectedMode = mode || mainMenuLayoutEditor.orientation || getCurrentLayoutMode();
+    if (layout && typeof layout === 'object' && !Array.isArray(layout) && (layout.portrait || layout.landscape)) {
+      return sanitizeMainMenuLayout(layout[selectedMode] || layout.landscape || layout.portrait || getLayoutEditorDefaults(selectedMode));
+    }
+    return sanitizeMainMenuLayout(layout || getLayoutEditorDefaults(selectedMode));
   }
 
   function clampPercentage(value, min = 0, max = 100) {
@@ -409,9 +435,21 @@
   }
 
   function buildMainMenuLayoutPayload() {
-    const editor = mainMenuLayoutEditor;
-    const activeLayout = editor.items.size ? Object.fromEntries([...editor.items.entries()].map(([key, item]) => [key, item.config])) : sanitizeMainMenuLayout(null);
-    return sanitizeMainMenuLayout(activeLayout);
+    const selectedMode = mainMenuLayoutEditor.orientation || getCurrentLayoutMode();
+    const base = {
+      portrait: mainMenuLayoutEditor.layoutCache.portrait || getLayoutEditorDefaults('portrait'),
+      landscape: mainMenuLayoutEditor.layoutCache.landscape || getLayoutEditorDefaults('landscape')
+    };
+
+    if (mainMenuLayoutEditor.items.size) {
+      const activeLayout = Object.fromEntries([...mainMenuLayoutEditor.items.entries()].map(([key, item]) => [key, item.config]));
+      base[selectedMode] = sanitizeMainMenuLayout(activeLayout);
+    }
+
+    return {
+      portrait: sanitizeMainMenuLayout(base.portrait),
+      landscape: sanitizeMainMenuLayout(base.landscape)
+    };
   }
 
   function setEditorLayoutFromPage() {
@@ -427,6 +465,7 @@
     const next = {};
     const viewportW = window.innerWidth || document.documentElement.clientWidth || 1;
     const viewportH = window.innerHeight || document.documentElement.clientHeight || 1;
+    const selectedMode = mainMenuLayoutEditor.orientation || getCurrentLayoutMode();
 
     Object.entries(selectors).forEach(([key, selector]) => {
       const el = document.querySelector(selector);
@@ -440,8 +479,12 @@
       };
     });
 
-    renderMainMenuLayoutEditor(next);
-    return sanitizeMainMenuLayout(next);
+    mainMenuLayoutEditor.layoutCache[selectedMode] = sanitizeMainMenuLayout(next);
+    renderMainMenuLayoutEditor(mainMenuLayoutEditor.layoutCache, selectedMode);
+    return {
+      portrait: sanitizeMainMenuLayout(mainMenuLayoutEditor.layoutCache.portrait || getLayoutEditorDefaults('portrait')),
+      landscape: sanitizeMainMenuLayout(mainMenuLayoutEditor.layoutCache.landscape || getLayoutEditorDefaults('landscape'))
+    };
   }
 
   function syncLayoutEditorItem(key, config) {
@@ -477,14 +520,22 @@
     }
   }
 
-  function renderMainMenuLayoutEditor(layout = null) {
+  function renderMainMenuLayoutEditor(layout = null, mode = null) {
     const viewport = document.getElementById('layout-editor-viewport');
     if (!viewport) return;
+
+    const selectedMode = mode || mainMenuLayoutEditor.orientation || getCurrentLayoutMode();
+    mainMenuLayoutEditor.orientation = selectedMode;
     mainMenuLayoutEditor.viewport = viewport;
     mainMenuLayoutEditor.items.clear();
     viewport.innerHTML = '';
 
-    const config = sanitizeMainMenuLayout(layout || getLayoutEditorDefaults());
+    const config = resolveLayoutForMode(layout, selectedMode);
+    mainMenuLayoutEditor.layoutCache[selectedMode] = config;
+
+    const modeButtons = document.querySelectorAll('.mode-btn');
+    modeButtons.forEach((btn) => btn.classList.toggle('active', btn.dataset.layoutMode === selectedMode));
+
     const palette = {
       leftEventsContainer: 'rgba(251, 191, 36, 0.34)',
       headerRightPanel: 'rgba(168, 85, 247, 0.34)',
@@ -665,7 +716,20 @@
     if (!editor) return;
 
     const saved = (window.__fbMainMenuLayout && typeof window.__fbMainMenuLayout === 'object') ? window.__fbMainMenuLayout : null;
-    renderMainMenuLayoutEditor(saved || getLayoutEditorDefaults());
+    mainMenuLayoutEditor.layoutCache.portrait = resolveLayoutForMode(saved && saved.portrait ? saved : getLayoutEditorDefaults('portrait'), 'portrait');
+    mainMenuLayoutEditor.layoutCache.landscape = resolveLayoutForMode(saved && saved.landscape ? saved : getLayoutEditorDefaults('landscape'), 'landscape');
+    const initialMode = getCurrentLayoutMode();
+    mainMenuLayoutEditor.orientation = initialMode;
+    renderMainMenuLayoutEditor(mainMenuLayoutEditor.layoutCache, initialMode);
+
+    document.querySelectorAll('.mode-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const nextMode = btn.dataset.layoutMode;
+        if (!nextMode) return;
+        mainMenuLayoutEditor.orientation = nextMode;
+        renderMainMenuLayoutEditor(mainMenuLayoutEditor.layoutCache, nextMode);
+      });
+    });
 
     const fullscreenBtn = document.getElementById('toggle-layout-fullscreen-btn');
     if (fullscreenBtn) {
@@ -687,7 +751,7 @@
     if (saveBtn) {
       saveBtn.addEventListener('click', () => {
         const layout = setEditorLayoutFromPage();
-        renderMainMenuLayoutEditor(layout);
+        renderMainMenuLayoutEditor(layout, mainMenuLayoutEditor.orientation);
         saveAndApplyMainMenuLayout();
       });
     }
@@ -695,8 +759,9 @@
     const resetBtn = document.getElementById('reset-layout-btn');
     if (resetBtn) {
       resetBtn.addEventListener('click', () => {
-        const defaults = getLayoutEditorDefaults();
-        renderMainMenuLayoutEditor(defaults);
+        mainMenuLayoutEditor.layoutCache.portrait = sanitizeMainMenuLayout(getLayoutEditorDefaults('portrait'));
+        mainMenuLayoutEditor.layoutCache.landscape = sanitizeMainMenuLayout(getLayoutEditorDefaults('landscape'));
+        renderMainMenuLayoutEditor(mainMenuLayoutEditor.layoutCache, mainMenuLayoutEditor.orientation);
         setLayoutEditorFullscreen(false);
         saveAndApplyMainMenuLayout();
       });

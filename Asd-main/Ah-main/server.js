@@ -87,32 +87,68 @@ const adminConfig = {
   resourceRespawnMultiplier: 1,
   announcement: '',
   mainMenuLayout: {
-    leftEventsContainer: { xPercent: 2, yPercent: 20, widthPercent: 22, heightPercent: 42 },
-    headerRightPanel: { xPercent: 75, yPercent: 8, widthPercent: 22, heightPercent: 36 },
-    mainMenu: { xPercent: 50, yPercent: 50, widthPercent: 42, heightPercent: 75 },
-    nameInput: { xPercent: 50, yPercent: 32, widthPercent: 72, heightPercent: 7 },
-    activePetBtn: { xPercent: 50, yPercent: 42, widthPercent: 72, heightPercent: 14 },
-    playBtn: { xPercent: 50, yPercent: 60, widthPercent: 80, heightPercent: 12 },
-    actionButtons: { xPercent: 50, yPercent: 72, widthPercent: 72, heightPercent: 11 }
+    portrait: {
+      leftEventsContainer: { xPercent: 10, yPercent: 20, widthPercent: 84, heightPercent: 16 },
+      headerRightPanel: { xPercent: 82, yPercent: 10, widthPercent: 18, heightPercent: 22 },
+      mainMenu: { xPercent: 50, yPercent: 58, widthPercent: 86, heightPercent: 50 },
+      nameInput: { xPercent: 50, yPercent: 34, widthPercent: 78, heightPercent: 9 },
+      activePetBtn: { xPercent: 50, yPercent: 48, widthPercent: 78, heightPercent: 16 },
+      playBtn: { xPercent: 50, yPercent: 65, widthPercent: 88, heightPercent: 15 },
+      actionButtons: { xPercent: 50, yPercent: 77, widthPercent: 82, heightPercent: 12 }
+    },
+    landscape: {
+      leftEventsContainer: { xPercent: 2, yPercent: 20, widthPercent: 22, heightPercent: 42 },
+      headerRightPanel: { xPercent: 75, yPercent: 8, widthPercent: 22, heightPercent: 36 },
+      mainMenu: { xPercent: 50, yPercent: 50, widthPercent: 42, heightPercent: 75 },
+      nameInput: { xPercent: 50, yPercent: 32, widthPercent: 72, heightPercent: 7 },
+      activePetBtn: { xPercent: 50, yPercent: 42, widthPercent: 72, heightPercent: 14 },
+      playBtn: { xPercent: 50, yPercent: 60, widthPercent: 80, heightPercent: 12 },
+      actionButtons: { xPercent: 50, yPercent: 72, widthPercent: 72, heightPercent: 11 }
+    }
   }
 };
 
 function normalizeMainMenuLayout(layout) {
-  const fallback = adminConfig.mainMenuLayout || {};
-  if (!layout || typeof layout !== 'object') return fallback;
+  const fallback = adminConfig.mainMenuLayout || { portrait: {}, landscape: {} };
+  const safe = {
+    portrait: { ...(fallback.portrait || {}) },
+    landscape: { ...(fallback.landscape || {}) }
+  };
 
-  const safe = { ...fallback };
-  const keys = Object.keys(safe);
+  if (!layout || typeof layout !== 'object') return safe;
 
-  for (const key of keys) {
-    const value = layout[key];
-    if (!value || typeof value !== 'object') continue;
-    safe[key] = {
-      xPercent: clampNumber(Number(value.xPercent ?? value.x ?? safe[key].xPercent ?? 50), 0, 100),
-      yPercent: clampNumber(Number(value.yPercent ?? value.y ?? safe[key].yPercent ?? 50), 0, 100),
-      widthPercent: clampNumber(Number(value.widthPercent ?? value.w ?? safe[key].widthPercent ?? 20), 8, 100),
-      heightPercent: clampNumber(Number(value.heightPercent ?? value.h ?? safe[key].heightPercent ?? 20), 8, 100)
-    };
+  const layoutEntries = layout.portrait || layout.landscape ? ['portrait', 'landscape'] : ['landscape'];
+  for (const mode of layoutEntries) {
+    const source = layout[mode] || layout || {};
+    const target = safe[mode] || {};
+    const keys = Object.keys(target).length ? Object.keys(target) : Object.keys(source);
+
+    for (const key of keys) {
+      const value = source[key] || target[key];
+      if (!value || typeof value !== 'object') continue;
+      target[key] = {
+        xPercent: clampNumber(Number(value.xPercent ?? value.x ?? target[key]?.xPercent ?? 50), 0, 100),
+        yPercent: clampNumber(Number(value.yPercent ?? value.y ?? target[key]?.yPercent ?? 50), 0, 100),
+        widthPercent: clampNumber(Number(value.widthPercent ?? value.w ?? target[key]?.widthPercent ?? 20), 8, 100),
+        heightPercent: clampNumber(Number(value.heightPercent ?? value.h ?? target[key]?.heightPercent ?? 20), 8, 100)
+      };
+    }
+    safe[mode] = { ...target };
+  }
+
+  if (!layout.portrait && !layout.landscape && Object.keys(layout).length) {
+    const flatKeys = Object.keys(layout);
+    for (const key of flatKeys) {
+      const value = layout[key];
+      if (!value || typeof value !== 'object') continue;
+      safe.landscape[key] = {
+        xPercent: clampNumber(Number(value.xPercent ?? value.x ?? safe.landscape[key]?.xPercent ?? 50), 0, 100),
+        yPercent: clampNumber(Number(value.yPercent ?? value.y ?? safe.landscape[key]?.yPercent ?? 50), 0, 100),
+        widthPercent: clampNumber(Number(value.widthPercent ?? value.w ?? safe.landscape[key]?.widthPercent ?? 20), 8, 100),
+        heightPercent: clampNumber(Number(value.heightPercent ?? value.h ?? safe.landscape[key]?.heightPercent ?? 20), 8, 100)
+      };
+      safe.portrait[key] = { ...safe.landscape[key] };
+    }
   }
 
   return safe;
