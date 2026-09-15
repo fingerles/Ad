@@ -3125,6 +3125,85 @@
                 transform: scale(.7);
             }
         }
+
+        /* Event widgets stay visible below the starter card without covering the profile HUD. */
+        #left-events-container > div {
+            min-width: 0;
+        }
+
+        #left-events-container .invite-banner-card,
+        #left-events-container .creator-banner-card {
+            box-sizing: border-box;
+            width: 240px;
+        }
+
+        @media (orientation: portrait), (max-width: 640px) {
+            #left-events-container {
+                transform: none !important;
+                flex-direction: row !important;
+            }
+
+            #left-events-container > div {
+                flex: 1 1 0;
+                width: calc(50% - 4px);
+                align-items: stretch;
+            }
+
+            #left-events-container .invite-banner-card,
+            #left-events-container .creator-banner-card {
+                width: 100% !important;
+                min-height: 148px;
+                padding: 8px !important;
+                gap: 6px !important;
+                border-width: 3px;
+            }
+
+            #left-events-container .invite-banner-card > div:nth-child(3),
+            #left-events-container .creator-banner-card > div:nth-child(3) {
+                gap: 5px;
+                padding: 5px !important;
+            }
+
+            #left-events-container .invite-banner-card > div:nth-child(3) > div:first-child,
+            #left-events-container .creator-banner-card > div:nth-child(3) > div:first-child {
+                width: 36px !important;
+                height: 36px !important;
+            }
+
+            #left-events-container .invite-banner-card > div:nth-child(3) > div:nth-child(2),
+            #left-events-container .creator-banner-card > div:nth-child(3) > div:nth-child(2) {
+                min-width: 0;
+            }
+
+            #left-events-container .invite-banner-card > div:nth-child(3) span,
+            #left-events-container .creator-banner-card > div:nth-child(3) span {
+                font-size: 8px !important;
+            }
+
+            #left-events-container .invite-banner-card > div:nth-child(2) span,
+            #left-events-container .creator-banner-card > div:nth-child(2) span {
+                font-size: 8px !important;
+            }
+
+            #left-events-container .invite-banner-card button:last-child,
+            #left-events-container .creator-banner-card button:last-child {
+                min-height: 30px;
+                padding: 5px 3px !important;
+                font-size: 8px !important;
+            }
+        }
+
+        @media (orientation: landscape) and (min-width: 641px) {
+            #left-events-container {
+                transform: none !important;
+            }
+
+            #left-events-container .invite-banner-card,
+            #left-events-container .creator-banner-card {
+                width: 240px !important;
+                min-height: 166px;
+            }
+        }
     </style>
 </head>
 <body class="w-full h-full flex flex-col items-center justify-center relative select-none">
@@ -8528,6 +8607,40 @@
             });
         }
 
+        function syncLandingEventWidgets() {
+            const eventContainer = document.getElementById('left-events-container');
+            const starterBonus = document.querySelector('#main-menu > div.w-full.mt-3.mb-3');
+            if (!eventContainer || !starterBonus) return;
+
+            const portrait = window.matchMedia?.('(orientation: portrait)').matches || window.innerWidth <= 640;
+            const starterRect = starterBonus.getBoundingClientRect();
+            eventContainer.style.position = 'fixed';
+            eventContainer.style.zIndex = '35';
+
+            if (portrait) {
+                const eventWidth = Math.min(window.innerWidth - 16, 420);
+                const eventTop = Math.min(starterRect.bottom + 8, window.innerHeight - 132);
+                eventContainer.style.left = `${Math.max(8, (window.innerWidth - eventWidth) / 2)}px`;
+                eventContainer.style.top = `${Math.max(8, eventTop)}px`;
+                eventContainer.style.width = `${eventWidth}px`;
+                eventContainer.style.maxWidth = 'none';
+                eventContainer.style.transform = 'none';
+                eventContainer.style.flexDirection = 'row';
+                eventContainer.style.alignItems = 'stretch';
+                eventContainer.style.gap = '8px';
+                return;
+            }
+
+            eventContainer.style.left = 'clamp(180px, 20vw, 320px)';
+            eventContainer.style.top = 'clamp(180px, 48vh, 430px)';
+            eventContainer.style.width = '240px';
+            eventContainer.style.maxWidth = '240px';
+            eventContainer.style.transform = 'none';
+            eventContainer.style.flexDirection = 'column';
+            eventContainer.style.alignItems = 'stretch';
+            eventContainer.style.gap = '10px';
+        }
+
         async function loadMainMenuLayout() {
             try {
                 const response = await fetch('/api/public/config', { cache: 'no-store' });
@@ -8537,12 +8650,14 @@
                     window.__forestbrawlMainMenuLayout = payload.config.mainMenuLayout;
                     localStorage.setItem('fb_main_menu_layout', JSON.stringify(payload.config.mainMenuLayout));
                     applyMainMenuLayout(payload.config.mainMenuLayout);
+                    syncLandingEventWidgets();
                 }
             } catch (_) {}
         }
 
         window.addEventListener('resize', () => {
             applyMainMenuLayout(window.__forestbrawlMainMenuLayout || null);
+            syncLandingEventWidgets();
         });
 
         // If server config changes while dashboard is open, latch the layout immediately.
@@ -8550,6 +8665,7 @@
             if (event.data && event.data.type === 'forestbrawl-main-layout' && event.data.layout) {
                 window.__forestbrawlMainMenuLayout = event.data.layout;
                 applyMainMenuLayout(event.data.layout);
+                syncLandingEventWidgets();
             }
         });
 
@@ -8561,8 +8677,10 @@
                     const parsed = JSON.parse(savedLayout);
                     window.__forestbrawlMainMenuLayout = parsed;
                     applyMainMenuLayout(parsed);
+                    syncLandingEventWidgets();
                 } catch (_) {}
             }
+            requestAnimationFrame(syncLandingEventWidgets);
         })();
         const bgCtx = bgCanvas ? bgCanvas.getContext('2d') : null;
         let bgW = window.innerWidth, bgH = window.innerHeight;
