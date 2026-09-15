@@ -3198,10 +3198,25 @@
                 transform: none !important;
             }
 
+            #left-events-container #left-creator-event-widget {
+                order: 1;
+            }
+
+            #left-events-container #left-invite-event-widget {
+                order: 2;
+            }
+
             #left-events-container .invite-banner-card,
             #left-events-container .creator-banner-card {
                 width: 240px !important;
                 min-height: 166px;
+            }
+        }
+
+        @media (orientation: portrait), (max-width: 640px) {
+            #left-events-container #left-invite-event-widget,
+            #left-events-container #left-creator-event-widget {
+                order: initial;
             }
         }
 
@@ -8683,8 +8698,9 @@
 
             if (portrait) {
                 const eventWidth = Math.min(window.innerWidth - 16, 420);
-                const eventTop = Math.min(starterRect.bottom + 8, window.innerHeight - 132);
+                const eventTop = Math.min(starterRect.bottom + 8, window.innerHeight - 176);
                 eventContainer.style.left = `${Math.max(8, (window.innerWidth - eventWidth) / 2)}px`;
+                eventContainer.style.right = 'auto';
                 eventContainer.style.top = `${Math.max(8, eventTop)}px`;
                 eventContainer.style.width = `${eventWidth}px`;
                 eventContainer.style.maxWidth = 'none';
@@ -8695,14 +8711,15 @@
                 return;
             }
 
-            eventContainer.style.left = 'clamp(180px, 20vw, 320px)';
-            eventContainer.style.top = 'clamp(180px, 48vh, 430px)';
+            eventContainer.style.left = 'auto';
+            eventContainer.style.right = 'clamp(12px, 3vw, 42px)';
+            eventContainer.style.top = 'clamp(150px, 30vh, 300px)';
             eventContainer.style.width = '240px';
             eventContainer.style.maxWidth = '240px';
             eventContainer.style.transform = 'none';
             eventContainer.style.flexDirection = 'column';
             eventContainer.style.alignItems = 'stretch';
-            eventContainer.style.gap = '10px';
+            eventContainer.style.gap = '4px';
         }
 
         async function loadMainMenuLayout() {
