@@ -42,6 +42,7 @@ const TRAP_MAX_HP = 240;
 const BUILD_COSTS = { 3: [20, 5, 0], 4: [40, 20, 0], 5: [10, 20, 0], 6: [30, 10, 0], 7: [60, 40, 0], 8: [30, 0, 0], 9: [80, 60, 0], 10: [25, 0, 0] };
 const BUILD_RADII = { 3: 34, 4: 44, 5: 22, 6: 78, 7: 32, 8: 24, 9: 52, 10: 30 };
 const BUILD_MAX_HP = { 3: 180, 4: 120, 5: 100, 6: 240, 7: 200, 8: 350, 9: 800, 10: 100 };
+const BUILD_ACTION_COOLDOWN = 700;
 let buildingGrid = new Map();
 function rebuildBuildingGrid() {
   const nextGrid = new Map();
@@ -3753,6 +3754,18 @@ function applyPlayerDamage(target, damage) {
   return target;
 }
 
+function publishPlayerDamage(target, damage, sourceName = 'Düşman') {
+  if (!target) return;
+  const socket = io.sockets.sockets.get(target.id);
+  if (target.isBot) {
+    io.emit('players', { [target.id]: compactState(target) });
+    return;
+  }
+  if (!socket || !socket.connected) return;
+  socket.emit('pvp_hit', { dmg: damage, fromName: sourceName });
+  socket.emit('self_state', { hp: target.hp, hpSeq: target.hpSeq, hpAt: target.hpAt });
+}
+
 function applySpikeDamageToTarget(target, spike, now = Date.now(), fromPush = false) {
   if (!target || (target.hp ?? 0) <= 0 || target._dead) return false;
   if (!spike || Number(spike.type) !== 3 || (spike.hp ?? 0) <= 0) return false;
@@ -4784,6 +4797,9 @@ function scheduleBotRespawn(bot) {
     bot.baseBuildingIds = [];
     bot.defSpikes = [];
     bot.lastSwingAt = 0;
+    bot.lastAppleAt = 0;
+    bot.lastBuildAt = 0;
+    bot.lastBaseActionAt = 0;
     bot.isAttacking = false;
     bot.teleportSeq = (bot.teleportSeq || 0) + 1;
     bot.apples = 10;
@@ -4861,7 +4877,7 @@ setInterval(() => {
     }
 
     // 1. Survival Check: Heal with apples if low on HP
-    if (bot.hp < 210 && bot.apples > 0 && now - (bot.lastAppleAt || 0) > 340) {
+    if (bot.hp < 210 && bot.apples > 0 && now - (bot.lastAppleAt || 0) >= 700) {
       bot.apples--;
       bot.hp = Math.min(bot.maxHp, bot.hp + 32);
       bot.hpSeq = (bot.hpSeq || 0) + 1;
@@ -4869,12 +4885,13 @@ setInterval(() => {
       bot.lastAppleAt = now;
 
       // Defensive tactical spike drop when wounded in close combat (spawn with safe clearance)
-      if (bot.target && bot.target.type === 'player' && bot.wood >= 20 && now - (bot.lastBuildAt || 0) > 2800) {
+      if (bot.target && bot.target.type === 'player' && bot.wood >= 20 && now - (bot.lastBuildAt || 0) >= BUILD_ACTION_COOLDOWN) {
         bot.lastBuildAt = now;
         bot.wood -= 20;
         bot.weapon = 3;
         bot.isAttacking = true;
         bot.attackUntil = now + 250;
+        bot.lastSwingAt = now;
         const bDist = (bot.radius || 35) + 34 + 18; // 87 units clearance, never inside bot body
         const bX = Math.round(bot.x + Math.cos(bot.angle) * bDist);
         const bY = Math.round(bot.y + Math.sin(bot.angle) * bDist);
@@ -4895,6 +4912,7 @@ setInterval(() => {
         }
         bot.defSpikes.push(bId);
         rebuildBuildingGrid();
+        io.emit('player_attack', { id: bot.id, weapon: 3, angle: bot.angle, at: now, durationMs: 240 });
         io.emit('build', { id: bId, building: { ...defSpike } });
       }
     }
@@ -5028,9 +5046,11 @@ setInterval(() => {
           bot.wood -= wCost;
           bot.stone -= sCost;
           bot.lastBaseActionAt = now;
+          bot.lastBuildAt = now;
           bot.weapon = placeType;
           bot.isAttacking = true;
           bot.attackUntil = now + 300;
+          bot.lastSwingAt = now;
           bot.baseStep++;
           if (bot.baseStep > 5) bot.baseStep = 6;
 
@@ -5061,6 +5081,7 @@ setInterval(() => {
           buildings.set(bId, newBld);
           bot.baseBuildingIds.push(bId);
           rebuildBuildingGrid();
+          io.emit('player_attack', { id: bot.id, weapon: placeType, angle: bot.angle, at: now, durationMs: 240 });
           io.emit('build', { id: bId, building: { ...newBld } });
         }
       }
@@ -5245,16 +5266,11 @@ setInterval(() => {
 
               targetPlayer._lastAttackedBy = bot.id;
               applyPlayerDamage(targetPlayer, dmg);
+              publishPlayerDamage(targetPlayer, dmg, bot.name);
 
               // If target is another bot, make it retaliate!
               if (targetPlayer.isBot) {
                 alertBotAttacked(targetPlayer, bot);
-              } else {
-                const targetSocket = io.sockets.sockets.get(targetPlayer.id);
-                if (targetSocket) {
-                  targetSocket.emit('pvp_hit', { dmg, fromName: bot.name });
-                  targetSocket.emit('self_state', { hp: targetPlayer.hp, hpSeq: targetPlayer.hpSeq, hpAt: targetPlayer.hpAt });
-                }
               }
 
               if (targetPlayer.hp <= 0) {
@@ -6484,6 +6500,8 @@ io.on('connection', (socket) => {
     if (!Number.isInteger(bType) || !SERVER_BUILD_LIMITS[bType]) return;
     const owner = players.get(socket.id);
     if (!owner) return;
+    const now = Date.now();
+    if (now - (owner.lastBuildAt || 0) < BUILD_ACTION_COOLDOWN) return;
     const limit = SERVER_BUILD_LIMITS[bType] || 25;
     let ownedCount = 0;
     for (const b of buildings.values()) {
@@ -6508,10 +6526,11 @@ io.on('connection', (socket) => {
       return;
     }
     owner.wood -= wood; owner.stone -= stone; owner.gold -= gold;
+    owner.lastBuildAt = now;
     owner.weapon = bType;
     owner.isAttacking = true;
-    owner.attackUntil = Date.now() + 240;
-    owner.lastSwingAt = Date.now();
+    owner.attackUntil = now + 240;
+    owner.lastSwingAt = now;
     buildings.set(id, building);
     const cellKey = `${Math.floor((Number(building.x) || 0) / BUILDING_CELL_SIZE)},${Math.floor((Number(building.y) || 0) / BUILDING_CELL_SIZE)}`;
     const bucket = buildingGrid.get(cellKey);
@@ -6523,7 +6542,7 @@ io.on('connection', (socket) => {
       id: socket.id,
       weapon: bType,
       angle: owner.angle,
-      at: Date.now(),
+      at: now,
       durationMs: 240
     });
     io.emit('build', { id, building: { ...building } });
