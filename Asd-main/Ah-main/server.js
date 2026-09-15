@@ -2361,6 +2361,10 @@ async function handleApi(request, response, requestPath) {
     return true;
   }
 
+  if ((requestPath === '/api/invite-event/simulate' || requestPath === '/api/invite-event/reset') && request.method === 'POST') {
+    sendJson(response, 404, { error: 'Test ve sıfırlama işlemleri kapatıldı.' });
+    return true;
+  }
   if (requestPath === '/api/invite-event/simulate' && request.method === 'POST') {
     if (!user) {
       sendJson(response, 401, { error: 'Oturum gereklidir.' });
@@ -2410,7 +2414,7 @@ async function handleApi(request, response, requestPath) {
     return true;
   }
 
-  if (requestPath === '/api/invite-event/reset' && request.method === 'POST') {
+  if (false && requestPath === '/api/invite-event/reset' && request.method === 'POST') {
     if (!user) {
       sendJson(response, 401, { error: 'Oturum gereklidir.' });
       return true;
@@ -2575,6 +2579,10 @@ async function handleApi(request, response, requestPath) {
     return true;
   }
 
+  if ((requestPath === '/api/creator-event/simulate' || requestPath === '/api/creator-event/reset') && request.method === 'POST') {
+    sendJson(response, 404, { error: 'Test ve sıfırlama işlemleri kapatıldı.' });
+    return true;
+  }
   if (requestPath === '/api/creator-event/simulate' && request.method === 'POST') {
     if (!user) {
       sendJson(response, 401, { error: 'Oturum gereklidir.' });
@@ -2618,7 +2626,7 @@ async function handleApi(request, response, requestPath) {
     return true;
   }
 
-  if (requestPath === '/api/creator-event/reset' && request.method === 'POST') {
+  if (false && requestPath === '/api/creator-event/reset' && request.method === 'POST') {
     if (!user) {
       sendJson(response, 401, { error: 'Oturum gereklidir.' });
       return true;

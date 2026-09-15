@@ -3248,6 +3248,34 @@
             max-width: 94vw !important;
         }
 
+        /* Important tabs and live events use the whole centered modal; no hidden half-panels. */
+        #modalOverlay > #friendInviteModal,
+        #modalOverlay > #creatorEventModal,
+        #modalOverlay > #challengesModal,
+        #modalOverlay > #dailyRewardModal,
+        #modalOverlay > #levelRewardsModal,
+        #modalOverlay > #leadersModal,
+        #modalOverlay > #newsModal {
+            max-height: calc(100dvh - 16px) !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+        }
+
+        #modalOverlay > #friendInviteModal .panel-inset,
+        #modalOverlay > #creatorEventModal .panel-inset,
+        #modalOverlay > #challengesModal .panel-inset,
+        #modalOverlay > #dailyRewardModal .panel-inset,
+        #modalOverlay > #levelRewardsModal .panel-inset,
+        #modalOverlay > #newsModal .panel-inset {
+            max-height: none !important;
+            overflow: visible !important;
+        }
+
+        #modalOverlay > #friendInviteModal .modal-header-bar,
+        #modalOverlay > #creatorEventModal .modal-header-bar {
+            flex-shrink: 0;
+        }
+
         @media (max-width: 640px) {
             #modalOverlay > .modal-content {
                 width: calc(100vw - 12px) !important;
@@ -4421,21 +4449,6 @@
                     <!-- Arkadaşlar Listesi -->
                     <div id="invite-friends-list" class="flex flex-col gap-2"></div>
 
-                    <!-- Canlı Test Simülasyonu Araçları -->
-                    <div class="bg-black/40 p-2.5 rounded-xl border border-yellow-500/30 flex items-center justify-between gap-2 flex-wrap mt-2">
-                        <div>
-                            <span class="font-io text-xs text-yellow-300 block">🧪 TEST VE SİMÜLASYON KONTROLÜ</span>
-                            <span class="text-[10px] text-gray-400">Tek tıkla arkadaş davetini ve görevlerin tamamlanmasını simüle et.</span>
-                        </div>
-                        <div class="flex items-center gap-1.5">
-                            <button onclick="simulateFriendInviteStep(); playSfx('click')" class="btn-3d btn-yellow px-3 py-1.5 font-io text-xs stroke-text-dark flex items-center gap-1">
-                                <i class="fa-solid fa-flask"></i> TEST DAVETİ EKLE & TAMAMLA
-                            </button>
-                            <button onclick="resetFriendInviteTest(); playSfx('click')" class="btn-3d bg-red-800 hover:bg-red-700 px-2.5 py-1.5 font-io text-xs text-white stroke-text" title="Sıfırla">
-                                <i class="fa-solid fa-rotate-left"></i>
-                            </button>
-                        </div>
-                    </div>
                 </div>
 
             </div>
@@ -4590,21 +4603,6 @@
                     <!-- Videolar Listesi -->
                     <div id="creator-submissions-list" class="flex flex-col gap-2"></div>
 
-                    <!-- Canlı Test Simülasyonu Araçları -->
-                    <div class="bg-black/40 p-2.5 rounded-xl border border-purple-500/30 flex items-center justify-between gap-2 flex-wrap mt-2">
-                        <div>
-                            <span class="font-io text-xs text-purple-300 block">🧪 TEST VE SİMÜLASYON KONTROLÜ</span>
-                            <span class="text-[10px] text-gray-400">Tek tıkla video onayını ve kademe açılmasını simüle et.</span>
-                        </div>
-                        <div class="flex items-center gap-1.5">
-                            <button onclick="simulateCreatorSubmission(); playSfx('click')" class="btn-3d btn-purple px-3 py-1.5 font-io text-xs stroke-text-dark flex items-center gap-1">
-                                <i class="fa-solid fa-flask"></i> TEST VİDEOSU ONAYLA
-                            </button>
-                            <button onclick="resetCreatorEventTest(); playSfx('click')" class="btn-3d bg-red-800 hover:bg-red-700 px-2.5 py-1.5 font-io text-xs text-white stroke-text" title="Sıfırla">
-                                <i class="fa-solid fa-rotate-left"></i>
-                            </button>
-                        </div>
-                    </div>
                 </div>
 
                 <!-- SEKME 4: REHBER & KURALLAR -->
@@ -7672,7 +7670,7 @@
                         <div class="text-center py-6 border-2 border-dashed border-white/20 rounded-xl bg-black/20 text-gray-300 text-xs">
                             <i class="fa-solid fa-user-clock text-2xl text-amber-400 mb-1.5 block"></i>
                             Henüz davet edilen arkadaş yok.<br>
-                            Davet linkini arkadaşlarınla paylaş veya aşağıdaki test butonunu kullan!
+                            Davet linkini arkadaşlarınla paylaş; ödüller gerçek davet ilerlemesine göre açılır.
                         </div>
                     `;
                 } else {
