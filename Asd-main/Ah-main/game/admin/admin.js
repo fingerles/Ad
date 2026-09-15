@@ -386,32 +386,64 @@
     if (mode === 'portrait') {
       return {
         leftEventsContainer: { xPercent: 10, yPercent: 20, widthPercent: 82, heightPercent: 18 },
+        headerMain: { xPercent: 50, yPercent: 8, widthPercent: 96, heightPercent: 12 },
         headerRightPanel: { xPercent: 82, yPercent: 8, widthPercent: 18, heightPercent: 22 },
+        profileHud: { xPercent: 26, yPercent: 8, widthPercent: 42, heightPercent: 10 },
+        inviteEvent: { xPercent: 18, yPercent: 27, widthPercent: 34, heightPercent: 20 },
+        creatorEvent: { xPercent: 18, yPercent: 48, widthPercent: 34, heightPercent: 20 },
         mainMenu: { xPercent: 50, yPercent: 58, widthPercent: 86, heightPercent: 50 },
         nameInput: { xPercent: 50, yPercent: 34, widthPercent: 78, heightPercent: 9 },
         activePetBtn: { xPercent: 50, yPercent: 48, widthPercent: 78, heightPercent: 16 },
         playBtn: { xPercent: 50, yPercent: 65, widthPercent: 88, heightPercent: 15 },
-        actionButtons: { xPercent: 50, yPercent: 77, widthPercent: 82, heightPercent: 12 }
+        actionButtons: { xPercent: 50, yPercent: 77, widthPercent: 82, heightPercent: 12 },
+        profileModal: { xPercent: 50, yPercent: 50, widthPercent: 90, heightPercent: 72 },
+        cosmeticsModal: { xPercent: 50, yPercent: 50, widthPercent: 94, heightPercent: 82 },
+        shopModal: { xPercent: 50, yPercent: 50, widthPercent: 96, heightPercent: 86 },
+        levelRewardsModal: { xPercent: 50, yPercent: 50, widthPercent: 90, heightPercent: 72 },
+        newsModal: { xPercent: 50, yPercent: 50, widthPercent: 88, heightPercent: 64 },
+        friendInviteModal: { xPercent: 50, yPercent: 50, widthPercent: 94, heightPercent: 84 },
+        creatorEventModal: { xPercent: 50, yPercent: 50, widthPercent: 96, heightPercent: 86 },
+        leadersModal: { xPercent: 50, yPercent: 50, widthPercent: 92, heightPercent: 78 },
+        challengesModal: { xPercent: 50, yPercent: 50, widthPercent: 92, heightPercent: 78 },
+        dailyRewardModal: { xPercent: 50, yPercent: 50, widthPercent: 92, heightPercent: 70 },
+        partyModal: { xPercent: 50, yPercent: 50, widthPercent: 88, heightPercent: 64 },
+        helpModal: { xPercent: 50, yPercent: 50, widthPercent: 88, heightPercent: 64 }
       };
     }
 
     return {
       leftEventsContainer: { xPercent: 8, yPercent: 22, widthPercent: 26, heightPercent: 35 },
+      headerMain: { xPercent: 50, yPercent: 8, widthPercent: 98, heightPercent: 14 },
       headerRightPanel: { xPercent: 80, yPercent: 18, widthPercent: 22, heightPercent: 30 },
+      profileHud: { xPercent: 21, yPercent: 8, widthPercent: 26, heightPercent: 10 },
+      inviteEvent: { xPercent: 12, yPercent: 32, widthPercent: 22, heightPercent: 26 },
+      creatorEvent: { xPercent: 12, yPercent: 62, widthPercent: 22, heightPercent: 26 },
       mainMenu: { xPercent: 50, yPercent: 50, widthPercent: 38, heightPercent: 72 },
       nameInput: { xPercent: 50, yPercent: 31, widthPercent: 68, heightPercent: 8 },
       activePetBtn: { xPercent: 50, yPercent: 45, widthPercent: 68, heightPercent: 18 },
       playBtn: { xPercent: 50, yPercent: 60, widthPercent: 78, heightPercent: 16 },
-      actionButtons: { xPercent: 50, yPercent: 74, widthPercent: 68, heightPercent: 14 }
+      actionButtons: { xPercent: 50, yPercent: 74, widthPercent: 68, heightPercent: 14 },
+      profileModal: { xPercent: 50, yPercent: 50, widthPercent: 34, heightPercent: 72 },
+      cosmeticsModal: { xPercent: 50, yPercent: 50, widthPercent: 54, heightPercent: 82 },
+      shopModal: { xPercent: 50, yPercent: 50, widthPercent: 64, heightPercent: 86 },
+      levelRewardsModal: { xPercent: 50, yPercent: 50, widthPercent: 38, heightPercent: 72 },
+      newsModal: { xPercent: 50, yPercent: 50, widthPercent: 34, heightPercent: 64 },
+      friendInviteModal: { xPercent: 50, yPercent: 50, widthPercent: 46, heightPercent: 84 },
+      creatorEventModal: { xPercent: 50, yPercent: 50, widthPercent: 54, heightPercent: 86 },
+      leadersModal: { xPercent: 50, yPercent: 50, widthPercent: 42, heightPercent: 78 },
+      challengesModal: { xPercent: 50, yPercent: 50, widthPercent: 42, heightPercent: 78 },
+      dailyRewardModal: { xPercent: 50, yPercent: 50, widthPercent: 40, heightPercent: 70 },
+      partyModal: { xPercent: 50, yPercent: 50, widthPercent: 32, heightPercent: 64 },
+      helpModal: { xPercent: 50, yPercent: 50, widthPercent: 34, heightPercent: 64 }
     };
   }
 
   function resolveLayoutForMode(layout, mode = null) {
     const selectedMode = mode || mainMenuLayoutEditor.orientation || getCurrentLayoutMode();
     if (layout && typeof layout === 'object' && !Array.isArray(layout) && (layout.portrait || layout.landscape)) {
-      return sanitizeMainMenuLayout(layout[selectedMode] || layout.landscape || layout.portrait || getLayoutEditorDefaults(selectedMode));
+      return sanitizeMainMenuLayout(layout[selectedMode] || layout.landscape || layout.portrait || getLayoutEditorDefaults(selectedMode), selectedMode);
     }
-    return sanitizeMainMenuLayout(layout || getLayoutEditorDefaults(selectedMode));
+    return sanitizeMainMenuLayout(layout || getLayoutEditorDefaults(selectedMode), selectedMode);
   }
 
   function clampPercentage(value, min = 0, max = 100) {
@@ -419,8 +451,8 @@
     return Math.min(Math.max(value, min), max);
   }
 
-  function sanitizeMainMenuLayout(layout) {
-    const defaults = getLayoutEditorDefaults();
+  function sanitizeMainMenuLayout(layout, mode = null) {
+    const defaults = getLayoutEditorDefaults(mode || mainMenuLayoutEditor.orientation || getCurrentLayoutMode());
     const output = {};
     for (const [key, fallback] of Object.entries(defaults)) {
       const value = layout && layout[key] ? layout[key] : fallback;
@@ -443,12 +475,12 @@
 
     if (mainMenuLayoutEditor.items.size) {
       const activeLayout = Object.fromEntries([...mainMenuLayoutEditor.items.entries()].map(([key, item]) => [key, item.config]));
-      base[selectedMode] = sanitizeMainMenuLayout(activeLayout);
+      base[selectedMode] = sanitizeMainMenuLayout(activeLayout, selectedMode);
     }
 
     return {
-      portrait: sanitizeMainMenuLayout(base.portrait),
-      landscape: sanitizeMainMenuLayout(base.landscape)
+      portrait: sanitizeMainMenuLayout(base.portrait, 'portrait'),
+      landscape: sanitizeMainMenuLayout(base.landscape, 'landscape')
     };
   }
 
@@ -462,10 +494,10 @@
       playBtn: '#play-btn',
       actionButtons: '#action-buttons-grid'
     };
-    const next = {};
     const viewportW = window.innerWidth || document.documentElement.clientWidth || 1;
     const viewportH = window.innerHeight || document.documentElement.clientHeight || 1;
     const selectedMode = mainMenuLayoutEditor.orientation || getCurrentLayoutMode();
+    const next = { ...(mainMenuLayoutEditor.layoutCache[selectedMode] || getLayoutEditorDefaults(selectedMode)) };
 
     Object.entries(selectors).forEach(([key, selector]) => {
       const el = document.querySelector(selector);
@@ -479,11 +511,11 @@
       };
     });
 
-    mainMenuLayoutEditor.layoutCache[selectedMode] = sanitizeMainMenuLayout(next);
+    mainMenuLayoutEditor.layoutCache[selectedMode] = sanitizeMainMenuLayout(next, selectedMode);
     renderMainMenuLayoutEditor(mainMenuLayoutEditor.layoutCache, selectedMode);
     return {
-      portrait: sanitizeMainMenuLayout(mainMenuLayoutEditor.layoutCache.portrait || getLayoutEditorDefaults('portrait')),
-      landscape: sanitizeMainMenuLayout(mainMenuLayoutEditor.layoutCache.landscape || getLayoutEditorDefaults('landscape'))
+      portrait: sanitizeMainMenuLayout(mainMenuLayoutEditor.layoutCache.portrait || getLayoutEditorDefaults('portrait'), 'portrait'),
+      landscape: sanitizeMainMenuLayout(mainMenuLayoutEditor.layoutCache.landscape || getLayoutEditorDefaults('landscape'), 'landscape')
     };
   }
 
@@ -538,12 +570,28 @@
 
     const palette = {
       leftEventsContainer: 'rgba(251, 191, 36, 0.34)',
+      headerMain: 'rgba(14, 165, 233, 0.22)',
       headerRightPanel: 'rgba(168, 85, 247, 0.34)',
+      profileHud: 'rgba(234, 179, 8, 0.28)',
+      inviteEvent: 'rgba(249, 115, 22, 0.32)',
+      creatorEvent: 'rgba(192, 132, 252, 0.32)',
       mainMenu: 'rgba(34, 197, 94, 0.22)',
       nameInput: 'rgba(59, 130, 246, 0.34)',
       activePetBtn: 'rgba(236, 72, 153, 0.28)',
       playBtn: 'rgba(239, 68, 68, 0.28)',
-      actionButtons: 'rgba(14, 165, 233, 0.28)'
+      actionButtons: 'rgba(14, 165, 233, 0.28)',
+      profileModal: 'rgba(234, 179, 8, 0.2)',
+      cosmeticsModal: 'rgba(236, 72, 153, 0.2)',
+      shopModal: 'rgba(245, 158, 11, 0.22)',
+      levelRewardsModal: 'rgba(34, 197, 94, 0.2)',
+      newsModal: 'rgba(59, 130, 246, 0.22)',
+      friendInviteModal: 'rgba(249, 115, 22, 0.24)',
+      creatorEventModal: 'rgba(168, 85, 247, 0.24)',
+      leadersModal: 'rgba(250, 204, 21, 0.2)',
+      challengesModal: 'rgba(239, 68, 68, 0.2)',
+      dailyRewardModal: 'rgba(20, 184, 166, 0.2)',
+      partyModal: 'rgba(59, 130, 246, 0.2)',
+      helpModal: 'rgba(148, 163, 184, 0.2)'
     };
 
     Object.entries(config).forEach(([key, itemConfig]) => {

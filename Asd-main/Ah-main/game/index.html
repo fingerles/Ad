@@ -4720,6 +4720,7 @@
                 target.classList.remove('hidden');
                 target.classList.add('flex');
                 target.style.display = 'flex';
+                applyMainMenuLayout(window.__forestbrawlMainMenuLayout || null);
             }
             if (id === 'leadersModal') loadLeaderboard();
             if (id === 'cosmeticsModal') renderCosmeticsOwnedGrid();
@@ -8113,21 +8114,53 @@
             const defaults = {
                 portrait: {
                     leftEventsContainer: { xPercent: 10, yPercent: 20, widthPercent: 84, heightPercent: 16 },
+                    headerMain: { xPercent: 50, yPercent: 8, widthPercent: 96, heightPercent: 12 },
                     headerRightPanel: { xPercent: 82, yPercent: 10, widthPercent: 18, heightPercent: 22 },
+                    profileHud: { xPercent: 26, yPercent: 8, widthPercent: 42, heightPercent: 10 },
+                    inviteEvent: { xPercent: 18, yPercent: 27, widthPercent: 34, heightPercent: 20 },
+                    creatorEvent: { xPercent: 18, yPercent: 48, widthPercent: 34, heightPercent: 20 },
                     mainMenu: { xPercent: 50, yPercent: 58, widthPercent: 86, heightPercent: 50 },
                     nameInput: { xPercent: 50, yPercent: 34, widthPercent: 78, heightPercent: 9 },
                     activePetBtn: { xPercent: 50, yPercent: 48, widthPercent: 78, heightPercent: 16 },
                     playBtn: { xPercent: 50, yPercent: 65, widthPercent: 88, heightPercent: 15 },
-                    actionButtons: { xPercent: 50, yPercent: 77, widthPercent: 82, heightPercent: 12 }
+                    actionButtons: { xPercent: 50, yPercent: 77, widthPercent: 82, heightPercent: 12 },
+                    profileModal: { xPercent: 50, yPercent: 50, widthPercent: 90, heightPercent: 72 },
+                    cosmeticsModal: { xPercent: 50, yPercent: 50, widthPercent: 94, heightPercent: 82 },
+                    shopModal: { xPercent: 50, yPercent: 50, widthPercent: 96, heightPercent: 86 },
+                    levelRewardsModal: { xPercent: 50, yPercent: 50, widthPercent: 90, heightPercent: 72 },
+                    newsModal: { xPercent: 50, yPercent: 50, widthPercent: 88, heightPercent: 64 },
+                    friendInviteModal: { xPercent: 50, yPercent: 50, widthPercent: 94, heightPercent: 84 },
+                    creatorEventModal: { xPercent: 50, yPercent: 50, widthPercent: 96, heightPercent: 86 },
+                    leadersModal: { xPercent: 50, yPercent: 50, widthPercent: 92, heightPercent: 78 },
+                    challengesModal: { xPercent: 50, yPercent: 50, widthPercent: 92, heightPercent: 78 },
+                    dailyRewardModal: { xPercent: 50, yPercent: 50, widthPercent: 92, heightPercent: 70 },
+                    partyModal: { xPercent: 50, yPercent: 50, widthPercent: 88, heightPercent: 64 },
+                    helpModal: { xPercent: 50, yPercent: 50, widthPercent: 88, heightPercent: 64 }
                 },
                 landscape: {
                     leftEventsContainer: { xPercent: 7, yPercent: 25, widthPercent: 24, heightPercent: 38 },
+                    headerMain: { xPercent: 50, yPercent: 8, widthPercent: 98, heightPercent: 14 },
                     headerRightPanel: { xPercent: 85, yPercent: 18, widthPercent: 22, heightPercent: 30 },
+                    profileHud: { xPercent: 21, yPercent: 8, widthPercent: 26, heightPercent: 10 },
+                    inviteEvent: { xPercent: 12, yPercent: 32, widthPercent: 22, heightPercent: 26 },
+                    creatorEvent: { xPercent: 12, yPercent: 62, widthPercent: 22, heightPercent: 26 },
                     mainMenu: { xPercent: 50, yPercent: 50, widthPercent: 42, heightPercent: 76 },
                     nameInput: { xPercent: 50, yPercent: 33, widthPercent: 72, heightPercent: 8 },
                     activePetBtn: { xPercent: 50, yPercent: 45, widthPercent: 72, heightPercent: 17 },
                     playBtn: { xPercent: 50, yPercent: 60, widthPercent: 80, heightPercent: 14 },
-                    actionButtons: { xPercent: 50, yPercent: 74, widthPercent: 72, heightPercent: 12 }
+                    actionButtons: { xPercent: 50, yPercent: 74, widthPercent: 72, heightPercent: 12 },
+                    profileModal: { xPercent: 50, yPercent: 50, widthPercent: 34, heightPercent: 72 },
+                    cosmeticsModal: { xPercent: 50, yPercent: 50, widthPercent: 54, heightPercent: 82 },
+                    shopModal: { xPercent: 50, yPercent: 50, widthPercent: 64, heightPercent: 86 },
+                    levelRewardsModal: { xPercent: 50, yPercent: 50, widthPercent: 38, heightPercent: 72 },
+                    newsModal: { xPercent: 50, yPercent: 50, widthPercent: 34, heightPercent: 64 },
+                    friendInviteModal: { xPercent: 50, yPercent: 50, widthPercent: 46, heightPercent: 84 },
+                    creatorEventModal: { xPercent: 50, yPercent: 50, widthPercent: 54, heightPercent: 86 },
+                    leadersModal: { xPercent: 50, yPercent: 50, widthPercent: 42, heightPercent: 78 },
+                    challengesModal: { xPercent: 50, yPercent: 50, widthPercent: 42, heightPercent: 78 },
+                    dailyRewardModal: { xPercent: 50, yPercent: 50, widthPercent: 40, heightPercent: 70 },
+                    partyModal: { xPercent: 50, yPercent: 50, widthPercent: 32, heightPercent: 64 },
+                    helpModal: { xPercent: 50, yPercent: 50, widthPercent: 34, heightPercent: 64 }
                 }
             };
 
@@ -8166,13 +8199,35 @@
 
             const targets = {
                 leftEventsContainer: document.getElementById('left-events-container'),
+                headerMain: document.querySelector('body > header'),
                 headerRightPanel: document.getElementById('header-right-panel'),
+                profileHud: document.getElementById('header-profile-hud'),
+                inviteEvent: document.getElementById('left-invite-event-widget'),
+                creatorEvent: document.getElementById('left-creator-event-widget'),
                 mainMenu: document.getElementById('main-menu'),
                 nameInput: document.getElementById('name-input'),
                 activePetBtn: document.getElementById('active-pet-btn'),
                 playBtn: document.getElementById('play-btn'),
-                actionButtons: document.getElementById('action-buttons-grid')
+                actionButtons: document.getElementById('action-buttons-grid'),
+                profileModal: document.getElementById('profileModal'),
+                cosmeticsModal: document.getElementById('cosmeticsModal'),
+                shopModal: document.getElementById('shopModal'),
+                levelRewardsModal: document.getElementById('levelRewardsModal'),
+                newsModal: document.getElementById('newsModal'),
+                friendInviteModal: document.getElementById('friendInviteModal'),
+                creatorEventModal: document.getElementById('creatorEventModal'),
+                leadersModal: document.getElementById('leadersModal'),
+                challengesModal: document.getElementById('challengesModal'),
+                dailyRewardModal: document.getElementById('dailyRewardModal'),
+                partyModal: document.getElementById('partyModal'),
+                helpModal: document.getElementById('helpModal')
             };
+
+            const modalKeys = new Set([
+                'profileModal', 'cosmeticsModal', 'shopModal', 'levelRewardsModal', 'newsModal',
+                'friendInviteModal', 'creatorEventModal', 'leadersModal', 'challengesModal',
+                'dailyRewardModal', 'partyModal', 'helpModal'
+            ]);
 
             Object.entries(targets).forEach(([key, element]) => {
                 if (!element || !safeConfig[key]) return;
@@ -8190,6 +8245,14 @@
                 element.style.maxWidth = 'none';
                 element.style.maxHeight = 'none';
                 element.style.margin = '0';
+                if (key === 'headerMain') element.style.transform = 'none';
+                if (modalKeys.has(key)) {
+                    element.style.transform = 'translate(-50%, -50%)';
+                    element.style.setProperty('width', `${width}px`, 'important');
+                    element.style.setProperty('max-width', `${width}px`, 'important');
+                    element.style.setProperty('max-height', `${height}px`, 'important');
+                    element.style.overflow = 'auto';
+                }
             });
         }
 

@@ -89,21 +89,53 @@ const adminConfig = {
   mainMenuLayout: {
     portrait: {
       leftEventsContainer: { xPercent: 10, yPercent: 20, widthPercent: 84, heightPercent: 16 },
+      headerMain: { xPercent: 50, yPercent: 8, widthPercent: 96, heightPercent: 12 },
       headerRightPanel: { xPercent: 82, yPercent: 10, widthPercent: 18, heightPercent: 22 },
+      profileHud: { xPercent: 26, yPercent: 8, widthPercent: 42, heightPercent: 10 },
+      inviteEvent: { xPercent: 18, yPercent: 27, widthPercent: 34, heightPercent: 20 },
+      creatorEvent: { xPercent: 18, yPercent: 48, widthPercent: 34, heightPercent: 20 },
       mainMenu: { xPercent: 50, yPercent: 58, widthPercent: 86, heightPercent: 50 },
       nameInput: { xPercent: 50, yPercent: 34, widthPercent: 78, heightPercent: 9 },
       activePetBtn: { xPercent: 50, yPercent: 48, widthPercent: 78, heightPercent: 16 },
       playBtn: { xPercent: 50, yPercent: 65, widthPercent: 88, heightPercent: 15 },
-      actionButtons: { xPercent: 50, yPercent: 77, widthPercent: 82, heightPercent: 12 }
+      actionButtons: { xPercent: 50, yPercent: 77, widthPercent: 82, heightPercent: 12 },
+      profileModal: { xPercent: 50, yPercent: 50, widthPercent: 90, heightPercent: 72 },
+      cosmeticsModal: { xPercent: 50, yPercent: 50, widthPercent: 94, heightPercent: 82 },
+      shopModal: { xPercent: 50, yPercent: 50, widthPercent: 96, heightPercent: 86 },
+      levelRewardsModal: { xPercent: 50, yPercent: 50, widthPercent: 90, heightPercent: 72 },
+      newsModal: { xPercent: 50, yPercent: 50, widthPercent: 88, heightPercent: 64 },
+      friendInviteModal: { xPercent: 50, yPercent: 50, widthPercent: 94, heightPercent: 84 },
+      creatorEventModal: { xPercent: 50, yPercent: 50, widthPercent: 96, heightPercent: 86 },
+      leadersModal: { xPercent: 50, yPercent: 50, widthPercent: 92, heightPercent: 78 },
+      challengesModal: { xPercent: 50, yPercent: 50, widthPercent: 92, heightPercent: 78 },
+      dailyRewardModal: { xPercent: 50, yPercent: 50, widthPercent: 92, heightPercent: 70 },
+      partyModal: { xPercent: 50, yPercent: 50, widthPercent: 88, heightPercent: 64 },
+      helpModal: { xPercent: 50, yPercent: 50, widthPercent: 88, heightPercent: 64 }
     },
     landscape: {
       leftEventsContainer: { xPercent: 2, yPercent: 20, widthPercent: 22, heightPercent: 42 },
+      headerMain: { xPercent: 50, yPercent: 8, widthPercent: 98, heightPercent: 14 },
       headerRightPanel: { xPercent: 75, yPercent: 8, widthPercent: 22, heightPercent: 36 },
+      profileHud: { xPercent: 21, yPercent: 8, widthPercent: 26, heightPercent: 10 },
+      inviteEvent: { xPercent: 12, yPercent: 32, widthPercent: 22, heightPercent: 26 },
+      creatorEvent: { xPercent: 12, yPercent: 62, widthPercent: 22, heightPercent: 26 },
       mainMenu: { xPercent: 50, yPercent: 50, widthPercent: 42, heightPercent: 75 },
       nameInput: { xPercent: 50, yPercent: 32, widthPercent: 72, heightPercent: 7 },
       activePetBtn: { xPercent: 50, yPercent: 42, widthPercent: 72, heightPercent: 14 },
       playBtn: { xPercent: 50, yPercent: 60, widthPercent: 80, heightPercent: 12 },
-      actionButtons: { xPercent: 50, yPercent: 72, widthPercent: 72, heightPercent: 11 }
+      actionButtons: { xPercent: 50, yPercent: 72, widthPercent: 72, heightPercent: 11 },
+      profileModal: { xPercent: 50, yPercent: 50, widthPercent: 34, heightPercent: 72 },
+      cosmeticsModal: { xPercent: 50, yPercent: 50, widthPercent: 54, heightPercent: 82 },
+      shopModal: { xPercent: 50, yPercent: 50, widthPercent: 64, heightPercent: 86 },
+      levelRewardsModal: { xPercent: 50, yPercent: 50, widthPercent: 38, heightPercent: 72 },
+      newsModal: { xPercent: 50, yPercent: 50, widthPercent: 34, heightPercent: 64 },
+      friendInviteModal: { xPercent: 50, yPercent: 50, widthPercent: 46, heightPercent: 84 },
+      creatorEventModal: { xPercent: 50, yPercent: 50, widthPercent: 54, heightPercent: 86 },
+      leadersModal: { xPercent: 50, yPercent: 50, widthPercent: 42, heightPercent: 78 },
+      challengesModal: { xPercent: 50, yPercent: 50, widthPercent: 42, heightPercent: 78 },
+      dailyRewardModal: { xPercent: 50, yPercent: 50, widthPercent: 40, heightPercent: 70 },
+      partyModal: { xPercent: 50, yPercent: 50, widthPercent: 32, heightPercent: 64 },
+      helpModal: { xPercent: 50, yPercent: 50, widthPercent: 34, heightPercent: 64 }
     }
   }
 };
@@ -371,7 +403,11 @@ function loadAdminConfig() {
     if (!row) return;
     const saved = JSON.parse(row.state_json);
     for (const key of Object.keys(adminConfig)) {
-      if (saved[key] !== undefined) adminConfig[key] = saved[key];
+      if (saved[key] !== undefined) {
+        adminConfig[key] = key === 'mainMenuLayout'
+          ? normalizeMainMenuLayout(saved[key])
+          : saved[key];
+      }
     }
   } catch (error) {
     console.warn(`[Database] Admin config read failed: ${error.message}`);
