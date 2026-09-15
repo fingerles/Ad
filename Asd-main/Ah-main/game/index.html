@@ -3204,6 +3204,66 @@
                 min-height: 166px;
             }
         }
+
+        /* Every opened menu is centered by the overlay and fits the usable viewport. */
+        #modalOverlay {
+            box-sizing: border-box !important;
+            padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left)) !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+
+        #modalOverlay > .modal-content {
+            position: relative !important;
+            inset: auto !important;
+            left: auto !important;
+            top: auto !important;
+            right: auto !important;
+            bottom: auto !important;
+            transform: none !important;
+            box-sizing: border-box !important;
+            width: min(94vw, 720px) !important;
+            max-width: 94vw !important;
+            height: auto !important;
+            max-height: calc(100dvh - 16px) !important;
+            margin: 0 !important;
+            overflow-x: hidden !important;
+            overflow-y: auto !important;
+        }
+
+        #modalOverlay > #shopModal,
+        #modalOverlay > #cosmeticsModal {
+            width: min(96vw, 920px) !important;
+            max-width: 96vw !important;
+            min-height: min(72dvh, 680px) !important;
+            max-height: calc(100dvh - 16px) !important;
+        }
+
+        #modalOverlay > #profileModal,
+        #modalOverlay > #levelRewardsModal,
+        #modalOverlay > #newsModal,
+        #modalOverlay > #friendInviteModal,
+        #modalOverlay > #creatorEventModal {
+            width: min(94vw, 760px) !important;
+            max-width: 94vw !important;
+        }
+
+        @media (max-width: 640px) {
+            #modalOverlay > .modal-content {
+                width: calc(100vw - 12px) !important;
+                max-width: calc(100vw - 12px) !important;
+                max-height: calc(100dvh - 12px) !important;
+                border-radius: 12px;
+            }
+
+            #modalOverlay > #shopModal,
+            #modalOverlay > #cosmeticsModal {
+                width: calc(100vw - 8px) !important;
+                max-width: calc(100vw - 8px) !important;
+                min-height: calc(100dvh - 16px) !important;
+                max-height: calc(100dvh - 8px) !important;
+            }
+        }
     </style>
 </head>
 <body class="w-full h-full flex flex-col items-center justify-center relative select-none">
@@ -8570,6 +8630,19 @@
 
             Object.entries(targets).forEach(([key, element]) => {
                 if (!element || !safeConfig[key]) return;
+                if (modalKeys.has(key)) {
+                    element.style.position = '';
+                    element.style.left = '';
+                    element.style.top = '';
+                    element.style.width = '';
+                    element.style.height = '';
+                    element.style.maxWidth = '';
+                    element.style.maxHeight = '';
+                    element.style.margin = '';
+                    element.style.transform = '';
+                    element.style.overflow = '';
+                    return;
+                }
                 if (naturalFlowKeys.has(key)) {
                     element.style.position = '';
                     element.style.left = '';
@@ -8597,13 +8670,6 @@
                 element.style.maxHeight = 'none';
                 element.style.margin = '0';
                 if (key === 'headerMain') element.style.transform = 'none';
-                if (modalKeys.has(key)) {
-                    element.style.transform = 'translate(-50%, -50%)';
-                    element.style.setProperty('width', `${width}px`, 'important');
-                    element.style.setProperty('max-width', `${width}px`, 'important');
-                    element.style.setProperty('max-height', `${height}px`, 'important');
-                    element.style.overflow = 'auto';
-                }
             });
         }
 
