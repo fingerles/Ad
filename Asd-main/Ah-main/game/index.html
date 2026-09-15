@@ -2870,6 +2870,261 @@
                 transform: scale(0.68);
             }
         }
+
+        /* Final responsive landing contract: one predictable flow for every viewport. */
+        html,
+        body {
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow: hidden;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        }
+
+        #main-menu {
+            position: relative !important;
+            inset: auto !important;
+            display: flex !important;
+            flex: 0 1 auto !important;
+            align-self: center;
+            box-sizing: border-box;
+            width: min(440px, calc(100vw - 32px)) !important;
+            max-width: 440px !important;
+            height: auto !important;
+            max-height: calc(100dvh - 40px) !important;
+            min-height: 0 !important;
+            margin: 0 auto !important;
+            padding: 1.75rem 1rem 2rem !important;
+            overflow-x: hidden !important;
+            overflow-y: auto !important;
+            overscroll-behavior: contain;
+            scrollbar-width: thin;
+        }
+
+        #main-menu > * {
+            flex: 0 0 auto;
+            width: 100% !important;
+            max-width: 100% !important;
+            min-width: 0;
+            box-sizing: border-box;
+        }
+
+        #main-menu > .relative:first-child {
+            margin-bottom: 1rem !important;
+        }
+
+        #main-menu > .relative:first-child h1 {
+            font-size: 3.7rem;
+            line-height: .92;
+        }
+
+        #name-input {
+            height: 3.5rem !important;
+            min-height: 3.5rem !important;
+            margin-bottom: .75rem !important;
+        }
+
+        #active-pet-btn {
+            height: 5.75rem !important;
+            min-height: 5.75rem !important;
+            margin-bottom: .75rem !important;
+        }
+
+        #play-btn {
+            width: 100% !important;
+            height: 5.75rem !important;
+            min-height: 5.75rem !important;
+            margin-bottom: .75rem !important;
+        }
+
+        #action-buttons-grid {
+            margin: 0 0 .75rem !important;
+            gap: .5rem !important;
+        }
+
+        #action-buttons-grid button {
+            min-width: 0;
+            min-height: 3.75rem;
+        }
+
+        #left-events-container {
+            max-width: min(224px, 31vw);
+            transform-origin: top left;
+        }
+
+        #header-right-panel {
+            max-width: min(190px, 22vw);
+        }
+
+        @media (max-width: 900px) {
+            #main-menu {
+                width: min(440px, calc(100vw - 24px)) !important;
+                max-height: calc(100dvh - 24px) !important;
+                padding-top: 3.5rem !important;
+                padding-bottom: 1.5rem !important;
+            }
+
+            #main-menu > .relative:first-child h1 {
+                font-size: 3rem;
+            }
+
+            #left-events-container {
+                max-width: 190px;
+                transform: scale(.86);
+            }
+
+            #header-right-panel {
+                transform: scale(.86);
+                transform-origin: top right;
+            }
+        }
+
+        @media (max-width: 640px) {
+            #main-menu {
+                width: calc(100vw - 16px) !important;
+                max-height: calc(100dvh - 12px) !important;
+                padding: 4rem .5rem 1.25rem !important;
+            }
+
+            #main-menu > .relative:first-child {
+                margin-bottom: .75rem !important;
+            }
+
+            #main-menu > .relative:first-child h1 {
+                font-size: 2.55rem;
+            }
+
+            #name-input {
+                height: 3rem !important;
+                min-height: 3rem !important;
+                font-size: 1.15rem !important;
+            }
+
+            #active-pet-btn {
+                height: 4.5rem !important;
+                min-height: 4.5rem !important;
+            }
+
+            #active-pet-btn > div:first-child {
+                width: 3.5rem !important;
+                height: 3.5rem !important;
+            }
+
+            #play-btn {
+                height: 4.5rem !important;
+                min-height: 4.5rem !important;
+            }
+
+            #play-btn-text {
+                font-size: 2.55rem !important;
+            }
+
+            #left-events-container {
+                max-width: 164px;
+                transform: scale(.72);
+            }
+
+            #header-right-panel {
+                display: none !important;
+            }
+        }
+
+        @media (max-width: 380px) {
+            #main-menu {
+                width: calc(100vw - 8px) !important;
+                padding-inline: .25rem !important;
+            }
+
+            #main-menu > .relative:first-child h1 {
+                font-size: 2.25rem;
+            }
+
+            #active-pet-btn {
+                height: 4.1rem !important;
+                min-height: 4.1rem !important;
+            }
+
+            #active-pet-btn > div:first-child {
+                width: 3rem !important;
+                height: 3rem !important;
+            }
+
+            #play-btn {
+                height: 4.1rem !important;
+                min-height: 4.1rem !important;
+            }
+
+            #play-btn-text {
+                font-size: 2.25rem !important;
+            }
+        }
+
+        @media (orientation: landscape) and (max-height: 640px) {
+            #main-menu {
+                width: min(400px, calc(100vw - 250px)) !important;
+                max-height: calc(100dvh - 8px) !important;
+                padding: .5rem .75rem 1rem !important;
+            }
+
+            #main-menu > .relative:first-child {
+                margin-bottom: .35rem !important;
+            }
+
+            #main-menu > .relative:first-child h1 {
+                font-size: 2.1rem;
+            }
+
+            #name-input {
+                height: 2.35rem !important;
+                min-height: 2.35rem !important;
+                margin-bottom: .35rem !important;
+            }
+
+            #active-pet-btn {
+                height: 3.55rem !important;
+                min-height: 3.55rem !important;
+                margin-bottom: .35rem !important;
+            }
+
+            #active-pet-btn > div:first-child {
+                width: 2.65rem !important;
+                height: 2.65rem !important;
+            }
+
+            #play-btn {
+                height: 3.6rem !important;
+                min-height: 3.6rem !important;
+                margin-bottom: .35rem !important;
+            }
+
+            #play-btn-text {
+                font-size: 1.8rem !important;
+            }
+
+            #action-buttons-grid {
+                margin-bottom: .35rem !important;
+            }
+
+            #action-buttons-grid button {
+                min-height: 2.75rem;
+            }
+
+            #main-menu > div.w-full.mt-3.mb-3,
+            #main-menu > div.flex.lg\:hidden.justify-center.gap-1\.5,
+            #main-menu > div.flex.lg\:hidden.justify-center.w-full.mt-2 {
+                display: none !important;
+            }
+
+            #left-events-container {
+                max-width: 150px;
+                transform: scale(.62);
+            }
+
+            #header-right-panel {
+                transform: scale(.7);
+            }
+        }
     </style>
 </head>
 <body class="w-full h-full flex flex-col items-center justify-center relative select-none">
