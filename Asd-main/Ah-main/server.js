@@ -1397,8 +1397,14 @@ function recordDeathScore(name, score, gold, kills, timeAlive, userObj, updateUs
 }
 
 function persistPlayerScore(player) {
-  if (!player || !player.name) return;
+  if (!player || !player.name || player.isBot) return;
   recordDeathScore(player.name, player.score || player.gold, player.gold, player.kills, 0, player._authUser, false);
+}
+
+function isBotLeaderboardEntry(entry) {
+  if (!entry) return true;
+  if (entry.isBot || entry.bot === true) return true;
+  return typeof BOT_NAMES !== 'undefined' && BOT_NAMES.includes(String(entry.name || '').replace(/^\[[^\]]+\]\s*/, ''));
 }
 
 function leaderboard(tab) {
@@ -1408,7 +1414,7 @@ function leaderboard(tab) {
   };
 
   if (tab === 'recent') {
-    return (Array.isArray(accountData.recentDeaths) ? accountData.recentDeaths : []).map(entry => {
+    return (Array.isArray(accountData.recentDeaths) ? accountData.recentDeaths : []).filter(entry => !isBotLeaderboardEntry(entry)).map(entry => {
       const user = accountData.users?.[usernameKey(entry.name)];
       const currentRank = user ? rankInfo(user.xp || 0) : null;
       const profileCosmetics = user ? {
@@ -1435,6 +1441,7 @@ function leaderboard(tab) {
   const allMap = new Map();
   // 1. Registered users
   for (const user of Object.values(accountData.users || {})) {
+    if (isBotLeaderboardEntry(user)) continue;
     const key = usernameKey(user.username);
     const rInfo = rankInfo(user.xp || 0);
     const savedLeaderboardEntry = accountData.leaderboard?.[key];
@@ -1464,6 +1471,7 @@ function leaderboard(tab) {
 
   // 2. Guest leaderboard records
   for (const [key, entry] of Object.entries(accountData.leaderboard || {})) {
+    if (isBotLeaderboardEntry(entry)) continue;
     if (!allMap.has(key)) {
       allMap.set(key, {
         ...entry,
@@ -2958,6 +2966,7 @@ function compactState(state, full = false) {
     bx: typeof state.buildX === 'number' ? Math.round(state.buildX) : null, by: typeof state.buildY === 'number' ? Math.round(state.buildY) : null,
     sq: state.stateSeq || 0, tm: state.stateAt || Date.now(), tp: state.teleportSeq || 0,
     trappedBy: state.trappedBy || null, trappedX: state.trappedX ?? null, trappedY: state.trappedY ?? null,
+    bt: Boolean(state.isBot),
   };
   if (full) {
     res.n = state.name || 'Oyuncu';
@@ -4691,6 +4700,27 @@ const BOT_NAMES = [
   'Kral_Kurt', 'Thor_Slayer', 'Zeus_99', 'NoobMaster', 'Warrior_TR', 'Starve_King'
 ];
 
+function purgeBotLeaderboardRecords() {
+  const botKeys = new Set(BOT_NAMES.map(name => usernameKey(name)));
+  let changed = false;
+  for (const key of Object.keys(accountData.leaderboard || {})) {
+    if (botKeys.has(key)) {
+      delete accountData.leaderboard[key];
+      changed = true;
+    }
+  }
+  if (Array.isArray(accountData.recentDeaths)) {
+    const filtered = accountData.recentDeaths.filter(entry => !botKeys.has(usernameKey(entry?.name)));
+    if (filtered.length !== accountData.recentDeaths.length) {
+      accountData.recentDeaths = filtered;
+      changed = true;
+    }
+  }
+  if (changed) saveAccountData(true);
+}
+
+purgeBotLeaderboardRecords();
+
 const BOT_SKINS = ['default', 'skin_desert', 'skin_winter', 'skin_storm', 'skin_sapphire', 'skin_ruby', 'skin_emerald'];
 
 const BOT_CLANS = [
@@ -5450,7 +5480,7 @@ setInterval(() => {
   if (players.size === 0) return;
   updateBounty();
   const list = [...players.values()]
-    .filter(p => p && p.id && (p.isBot || io.sockets.sockets.get(p.id)?.connected) && (p.hp ?? 0) > 0)
+    .filter(p => p && p.id && !p.isBot && io.sockets.sockets.get(p.id)?.connected && (p.hp ?? 0) > 0)
     .map(p => ({
       id: p.id,
       name: (p.clanTag ? `[${p.clanTag}] ` : '') + (p.name || 'forestbrawl'),

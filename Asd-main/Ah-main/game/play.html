@@ -7137,7 +7137,10 @@ function openTabScoreboard() {
   el.style.display = 'flex';
   // Build rows: self + other players sorted by kills desc
   const all = [{ name: player.name || 'Sen', kills: player.kills, xp: player.xp, score: player.score||0, isSelf: true, rankId: _myRankId || 0 }];
-  _otherPlayers.forEach(p => { all.push({ name: p.name || '?', kills: p.kills || 0, xp: p.xp || 0, score: p.score||0, isSelf: false, rankId: p.rankId || 0 }); });
+  _otherPlayers.forEach(p => {
+    if (p.isBot) return;
+    all.push({ name: p.name || '?', kills: p.kills || 0, xp: p.xp || 0, score: p.score||0, isSelf: false, rankId: p.rankId || 0 });
+  });
   all.sort((a, b) => (b.score - a.score) || (b.kills - a.kills));
   const rows = document.getElementById('tab-sb-rows');
   if (!rows) return;
@@ -9899,7 +9902,7 @@ function updateLeaderboard() {
   const all = [{ name: (player && player.name) || 'Sen', score: playerGold, gold: playerGold, kills: (player && player.kills) || 0, profileCosmetics: (player && player.profileCosmetics) || {}, isMe: true }];
   if (typeof _otherPlayers !== 'undefined' && _otherPlayers) {
     _otherPlayers.forEach((p) => {
-      if (!p || !p.name) return;
+      if (!p || !p.name || p.isBot) return;
       const pGold = typeof p.gold === 'number' ? p.gold : (Number(p.score) || 0);
       all.push({ name: p.name, score: pGold, gold: pGold, kills: p.kills || 0, profileCosmetics: p.profileCosmetics, isMe: false });
     });
@@ -20762,6 +20765,7 @@ function initMultiplayer() {
         if (s.rk   !== undefined) existing.rankId      = s.rk;
         if (s.g    !== undefined) existing.gold        = s.g;
         if (s.sc   !== undefined) existing.score       = s.sc;
+        if (s.bt   !== undefined) existing.isBot       = Boolean(s.bt);
         if (s.color !== undefined) existing.color      = s.color;
         if (s.team !== undefined) existing.team        = s.team;
         if (s.clanId !== undefined) existing.clanId     = s.clanId;
@@ -20791,7 +20795,7 @@ function initMultiplayer() {
         // First time seeing this player via broadcast — init render pos immediately
         _registerSkinAsset(s.sk || s.skin, s.skinAsset);
         const p = {
-          name: s.n, skin: s.sk, x: sx, y: sy, angle: sa, bodyAngle: sa, weaponAngle: sa, swingAngle: 0,
+          name: s.n, skin: s.sk, isBot: Boolean(s.bt), x: sx, y: sy, angle: sa, bodyAngle: sa, weaponAngle: sa, swingAngle: 0,
           hp: s.hp, maxHp: s.mhp, weapon: s.w, isAttacking: false, attackTimer: 0, attackDuration: 150,
           kills: s.k, xp: s.xp, gold: s.g || 0, score: s.sc || 0, axeTier: s.at || 0, swordTier: s.st || 0,
           axeSkin: s.axeSkin || (s.acc && s.acc.b) || null,
@@ -20851,7 +20855,7 @@ function initMultiplayer() {
     const _pjS = state;
     _registerSkinAsset(_pjS.sk || _pjS.skin, _pjS.skinAsset);
     _otherPlayers.set(id, {
-      name: _pjS.n || _pjS.name || '?', skin: _pjS.sk || _pjS.skin || 'default',
+      name: _pjS.n || _pjS.name || '?', skin: _pjS.sk || _pjS.skin || 'default', isBot: Boolean(_pjS.bt),
       x: _pjS.x ?? 0, y: _pjS.y ?? 0, angle: _pjS.a ?? _pjS.angle ?? 0,
       bodyAngle: _pjS.a ?? _pjS.angle ?? 0, weaponAngle: _pjS.a ?? _pjS.angle ?? 0, swingAngle: 0,
       vx: _pjS.vx || 0, vy: _pjS.vy || 0,
